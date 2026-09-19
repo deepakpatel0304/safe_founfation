@@ -2,1312 +2,1205 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Foundation Design Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foundation Works — ETABS to SAFE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#EEF1F4;
-  --panel:#FFFFFF;
-  --panel-raised:#E7ECF0;
-  --border:#C9D3DC;
-  --border-soft:#DBE2E8;
-  --text:#182129;
-  --text-dim:#576775;
-  --text-faint:#8A98A5;
-  --accent:#2E6E93;
-  --accent-strong:#1F5578;
-  --accent-soft:rgba(46,110,147,0.10);
-  --brass:#8C6B28;
-  --brass-soft:rgba(140,107,40,0.10);
-  --pass:#3C7C45;
-  --pass-bg:rgba(60,124,69,0.10);
-  --warn:#8C6318;
-  --warn-bg:rgba(140,99,24,0.10);
-  --fail:#A0392F;
-  --fail-bg:rgba(160,57,47,0.10);
-  --radius:3px;
-  --font-ui:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;
-  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-  --plan-bg:#16232E;
-  --plan-grid:rgba(148,197,222,0.14);
-  --plan-grid-major:rgba(148,197,222,0.34);
-  --plan-line:#BFE3F5;
-  --plan-text:#E8F2F8;
-  --plan-col:#5A93B4;
-  --plan-col-stroke:#BFE3F5;
-  --plan-wall:#83B7D6;
-  --plan-footing:#E8B85B;
-  --plan-ring-warn:#E0B95E;
-  --plan-ring-fail:#E2857A;
-  --plan-ring-info:#7FB3D1;
+  --bg:#EDF1F4; --surface:#FBFCFD; --surface-2:#E4E9ED; --line:#C9D2D8;
+  --text:#1A2733; --text-dim:#5B6B77;
+  --accent:#0F6E9C; --accent-contrast:#FFFFFF; --accent-soft:#DCEEF5;
+  --rebar:#A8571F;
+  --pass:#2E7D4F; --warn:#93690C; --fail:#B23A2E;
+  --focus:#0F6E9C;
+  --font-ui:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+  --radius:5px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121820; --panel:#1A222C; --panel-raised:#212B37; --border:#2B3947; --border-soft:#212C38;
-    --text:#E8ECEF; --text-dim:#8D99A6; --text-faint:#5E6A76;
-    --accent:#6FA8CC; --accent-strong:#3E7EA3; --accent-soft:rgba(111,168,204,0.14);
-    --brass:#CBA355; --brass-soft:rgba(203,163,85,0.12);
-    --pass:#71AD79; --pass-bg:rgba(113,173,121,0.14);
-    --warn:#D9A84E; --warn-bg:rgba(217,168,78,0.14);
-    --fail:#CD5F55; --fail-bg:rgba(205,95,85,0.14);
+    --bg:#14181D; --surface:#1B2027; --surface-2:#232A33; --line:#313A45;
+    --text:#E7ECEF; --text-dim:#8E9BA8;
+    --accent:#5FC2E0; --accent-contrast:#0B1216; --accent-soft:#1E3A44;
+    --rebar:#E0935A;
+    --pass:#59C88A; --warn:#E0B84E; --fail:#E2685C;
+    --focus:#5FC2E0;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121820; --panel:#1A222C; --panel-raised:#212B37; --border:#2B3947; --border-soft:#212C38;
-  --text:#E8ECEF; --text-dim:#8D99A6; --text-faint:#5E6A76;
-  --accent:#6FA8CC; --accent-strong:#3E7EA3; --accent-soft:rgba(111,168,204,0.14);
-  --brass:#CBA355; --brass-soft:rgba(203,163,85,0.12);
-  --pass:#71AD79; --pass-bg:rgba(113,173,121,0.14);
-  --warn:#D9A84E; --warn-bg:rgba(217,168,78,0.14);
-  --fail:#CD5F55; --fail-bg:rgba(205,95,85,0.14);
+  --bg:#14181D; --surface:#1B2027; --surface-2:#232A33; --line:#313A45;
+  --text:#E7ECEF; --text-dim:#8E9BA8;
+  --accent:#5FC2E0; --accent-contrast:#0B1216; --accent-soft:#1E3A44;
+  --rebar:#E0935A;
+  --pass:#59C88A; --warn:#E0B84E; --fail:#E2685C;
+  --focus:#5FC2E0;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
   background:var(--bg); color:var(--text); font-family:var(--font-ui);
-  min-height:100vh; -webkit-font-smoothing:antialiased;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
 }
-button,input,select,textarea{ font-family:inherit; color:inherit; }
-:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-.app{ display:flex; flex-direction:column; min-height:100vh; }
+::selection{ background:var(--accent-soft); color:var(--text); }
+a{ color:var(--accent); }
+button{ font-family:inherit; }
+:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
 
-.titleblock{
-  background:var(--panel); border-bottom:1px solid var(--border);
-  padding:11px 22px; display:flex; flex-wrap:wrap; align-items:baseline; gap:18px 22px;
+.app{ display:flex; min-height:100vh; }
+
+.sidebar{
+  width:270px; flex-shrink:0; background:var(--surface);
+  border-right:1px solid var(--line); display:flex; flex-direction:column;
+  height:100vh; position:sticky; top:0; overflow-y:auto;
 }
-.titleblock .name{ font-size:15px; font-weight:600; color:var(--text); margin-right:4px; }
-.titleblock .field{ display:flex; gap:6px; font-family:var(--font-mono); font-size:12px; color:var(--text-dim); white-space:nowrap; }
-.titleblock .field b{ color:var(--text); font-weight:500; }
-
-.disclaimer{
-  background:var(--brass-soft); border-bottom:1px solid var(--border-soft);
-  border-left:3px solid var(--brass); padding:8px 22px; font-size:12.5px; color:var(--text-dim);
+.brand{ padding:20px 20px 14px; border-bottom:1px solid var(--line); }
+.brand-mark{ font-weight:700; font-size:15px; letter-spacing:.01em; }
+.brand-sub{ font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-top:3px; }
+.nav-note{ font-size:11.5px; color:var(--text-dim); padding:12px 20px 4px; }
+.nav{ padding:6px 10px 20px; }
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:8px 10px;
+  border-radius:4px; cursor:pointer; border-left:2px solid transparent; color:var(--text);
 }
-.disclaimer b{ color:var(--text); font-weight:600; }
+.nav-item:hover{ background:var(--surface-2); }
+.nav-item.active{ background:var(--accent-soft); border-left-color:var(--accent); }
+.nav-item.active .nav-name{ color:var(--accent); font-weight:600; }
+.nav-item.locked{ opacity:.6; }
+.nav-num{ font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); width:18px; flex-shrink:0; }
+.nav-name{ font-size:13px; flex:1; }
+.nav-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--line); }
+.nav-dot.done{ background:var(--pass); }
+.nav-dot.current{ background:var(--accent); }
 
-.layout{ display:flex; flex:1; min-height:0; }
-
-.sidebar{ width:232px; flex-shrink:0; background:var(--panel); border-right:1px solid var(--border); padding:14px 0; overflow-y:auto; }
-.sidebar button{
-  display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:none;
-  border-left:2px solid transparent; color:var(--text-dim); font-size:13.5px; padding:10px 20px; cursor:pointer;
+.main{ flex:1; min-width:0; }
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:16px 30px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:var(--bg); z-index:5;
 }
-.sidebar button .idx{ font-family:var(--font-mono); font-size:11px; color:var(--text-faint); min-width:18px; }
-.sidebar button:hover{ background:var(--panel-raised); color:var(--text); }
-.sidebar button.active{ background:var(--accent-soft); color:var(--text); border-left-color:var(--accent); font-weight:500; }
-.sidebar button.active .idx{ color:var(--accent); }
+.topbar h1{ font-size:17px; margin:0; font-weight:600; }
+.module-label{ font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+.chips{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.chip{ font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); border:1px solid var(--line); border-radius:20px; padding:3px 10px; }
+.content{ padding:26px 30px 80px; max-width:1120px; }
 
-.content{ flex:1; padding:26px 30px 60px; overflow-y:auto; min-width:0; }
-.content h1{ font-size:20px; font-weight:600; margin:0 0 4px; }
-.content .lede{ color:var(--text-dim); font-size:13.5px; margin:0 0 20px; max-width:640px; line-height:1.5; }
+.panel{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; margin-bottom:20px; }
+.panel-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+.panel-title{ font-weight:600; font-size:15px; }
+.panel-hint{ color:var(--text-dim); font-size:12.5px; margin-top:4px; max-width:64ch; }
 
-.panel{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:16px; }
-.panel h2{ font-size:13.5px; font-weight:600; color:var(--text); margin:0 0 14px; border-bottom:1px solid var(--border-soft); padding-bottom:9px; }
-
-.form-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px 16px; }
-.field label{ display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px; }
+.field-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; }
+.field label{ display:block; font-size:11.5px; color:var(--text-dim); margin-bottom:5px; }
 .field input, .field select{
-  width:100%; background:var(--panel-raised); border:1px solid var(--border); color:var(--text);
-  padding:9px 10px; border-radius:var(--radius); font-family:var(--font-mono); font-size:13px;
+  width:100%; padding:8px 10px; background:var(--bg); border:1px solid var(--line);
+  border-radius:4px; color:var(--text); font-size:13.5px; font-family:var(--font-ui);
 }
-.field input:disabled{ color:var(--text-faint); }
+.checkbox-field{ display:flex; align-items:center; gap:8px; }
+.checkbox-field label{ margin:0; color:var(--text); font-size:13px; }
+.checkbox-field input{ width:auto; }
 
 .btn{
-  background:var(--accent-strong); color:#F5F8FA; border:none; padding:11px 18px; border-radius:var(--radius);
-  font-size:13.5px; font-weight:500; cursor:pointer; white-space:nowrap;
+  font-weight:600; font-size:13px; padding:9px 16px; border-radius:4px;
+  border:1px solid var(--accent); background:var(--accent); color:var(--accent-contrast); cursor:pointer;
 }
-.btn:hover{ filter:brightness(1.08); }
-.btn.secondary{ background:transparent; border:1px solid var(--border); color:var(--text); }
-.btn.secondary:hover{ background:var(--panel-raised); }
-.btn.small{ padding:7px 12px; font-size:12.5px; }
-.btn:disabled{ opacity:0.45; cursor:not-allowed; filter:none; }
-.btn-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-.btn-row.small{ margin-top:8px; gap:16px; }
+.btn:hover{ filter:brightness(1.06); }
+.btn-ghost{ background:transparent; color:var(--text); border-color:var(--line); }
+.btn-sm{ padding:5px 11px; font-size:12px; }
+.btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+.btn:disabled{ opacity:.5; cursor:not-allowed; }
 
-.hint{ font-size:12.5px; color:var(--text-dim); margin:8px 0 0; }
-.note{ font-size:13px; color:var(--text-dim); }
-.callout{
-  border-left:3px solid var(--brass); background:var(--brass-soft); padding:12px 14px; font-size:12.8px;
-  color:var(--text-dim); border-radius:0 var(--radius) var(--radius) 0; line-height:1.5;
-}
-.empty-state{ text-align:left; }
-.empty-state p{ color:var(--text-dim); font-size:13.5px; margin:0 0 14px; }
-
-textarea#importText{
-  width:100%; background:var(--panel-raised); border:1px solid var(--border); color:var(--text);
-  padding:10px 12px; border-radius:var(--radius); font-family:var(--font-mono); font-size:12.5px;
-  resize:vertical; line-height:1.5;
-}
-
+table.data-table{ width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:12.5px; }
+.data-table th{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); color:var(--text-dim); font-family:var(--font-ui); font-weight:600; font-size:11.5px; white-space:nowrap; }
+.data-table td{ padding:7px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+.data-table tr:hover td{ background:var(--surface-2); }
 .table-wrap{ overflow-x:auto; }
-table.data{ width:100%; border-collapse:collapse; font-size:13px; }
-table.data.compact{ font-size:12.5px; }
-table.data th{
-  text-align:left; font-weight:500; color:var(--text-dim); padding:8px 10px; border-bottom:1px solid var(--border);
-  font-size:12px; white-space:nowrap;
-}
-table.data td{ padding:7px 10px; border-bottom:1px solid var(--border-soft); font-family:var(--font-mono); font-size:12.8px; white-space:nowrap; }
-table.data td.num{ text-align:right; }
-table.data .mono{ font-family:var(--font-mono); }
-.cell-input{
-  width:76px; background:var(--panel-raised); border:1px solid var(--border-soft); color:var(--text);
-  padding:5px 6px; border-radius:2px; font-family:var(--font-mono); font-size:12.5px; text-align:right;
-}
-table.data select{
-  background:var(--panel-raised); border:1px solid var(--border-soft); color:var(--text);
-  padding:5px 6px; border-radius:2px; font-size:12.5px; font-family:var(--font-ui);
-}
+.data-table select, .data-table input{ font-family:var(--font-mono); font-size:12px; padding:3px 6px; background:var(--bg); border:1px solid var(--line); border-radius:3px; color:var(--text); }
 
-.status{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:3px; font-family:var(--font-mono); font-size:11.5px; font-weight:500; white-space:nowrap; }
-.status.pass{ background:var(--pass-bg); color:var(--pass); }
-.status.warn{ background:var(--warn-bg); color:var(--warn); }
-.status.fail{ background:var(--fail-bg); color:var(--fail); }
+.badge{ display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px; font-family:var(--font-mono); border:1px solid currentColor; }
+.badge-pass{ color:var(--pass); } .badge-fail{ color:var(--fail); } .badge-warn{ color:var(--warn); } .badge-dim{ color:var(--text-dim); }
 
-.check-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
-.check-list li{ display:flex; gap:9px; align-items:baseline; font-size:13px; color:var(--text); }
+.log-console{ background:#0d1116; color:#c7d0d6; font-family:var(--font-mono); font-size:12.5px; padding:14px 16px; border-radius:4px; max-height:280px; overflow-y:auto; line-height:1.7; }
+.log-line.fail{ color:#e2685c; } .log-line.pass{ color:#59c88a; }
 
-.log-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
-.log-list li{ padding:7px 10px; border-left:3px solid var(--border); font-size:12.8px; background:var(--panel-raised); }
-.log-list li.log-pass{ border-left-color:var(--pass); }
-.log-list li.log-warn{ border-left-color:var(--warn); }
-.log-list li.log-fail{ border-left-color:var(--fail); }
+.empty{ padding:34px 0 10px; max-width:52ch; }
+.empty h3{ margin:0 0 8px; font-size:15px; }
+.empty p{ color:var(--text-dim); font-size:13px; margin:0 0 16px; }
 
-.plan-panel{ padding-bottom:14px; }
-.plan-toolbar{ display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; margin-bottom:12px; }
-.toolbar-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.toolbar-group input[type="text"]{
-  background:var(--panel-raised); border:1px solid var(--border); color:var(--text); padding:8px 10px;
-  border-radius:var(--radius); font-family:var(--font-mono); font-size:12.5px; width:150px;
-}
-.plan-wrap{ background:var(--plan-bg); border-radius:var(--radius); overflow:hidden; touch-action:none; border:1px solid var(--border); }
-.plan-wrap.small{ margin-top:10px; }
-#planSvg{ width:100%; height:420px; display:block; }
-.drawing-svg{ width:100%; height:280px; display:block; }
-.plan-empty{ color:var(--plan-text); opacity:0.6; font-size:13px; padding:60px 20px; text-align:center; }
+.plan-wrap{ border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--bg); }
+.plan-toolbar{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; padding:10px 14px; border-bottom:1px solid var(--line); font-size:12.5px; }
+.plan-toolbar label{ display:flex; align-items:center; gap:6px; color:var(--text-dim); }
+.plan-svg{ display:block; width:100%; height:440px; cursor:grab; touch-action:none; }
+.plan-svg:active{ cursor:grabbing; }
+.plan-side{ display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; }
+.plan-side-panel{ flex:1; min-width:220px; }
 
-.grid-minor{ stroke:var(--plan-grid); stroke-width:1; vector-effect:non-scaling-stroke; }
-.grid-major{ stroke:var(--plan-grid-major); stroke-width:1; vector-effect:non-scaling-stroke; }
-.col-rect{ fill:var(--plan-col); stroke:var(--plan-col-stroke); stroke-width:1.4; vector-effect:non-scaling-stroke; }
-.wall-line{ stroke:var(--plan-wall); stroke-width:6; stroke-linecap:round; vector-effect:non-scaling-stroke; }
-.footing-outline{ fill:none; stroke:var(--plan-footing); stroke-width:1.4; stroke-dasharray:5 4; vector-effect:non-scaling-stroke; }
-.pt-label{ fill:var(--plan-text); font-family:var(--font-mono); font-size:0.34px; }
-.ring{ fill:none; stroke-width:0.9; vector-effect:non-scaling-stroke; }
-.ring-warn{ stroke:var(--plan-ring-warn); }
-.ring-fail{ stroke:var(--plan-ring-fail); }
-.ring-info{ stroke:var(--plan-ring-info); stroke-dasharray:2 1.6; }
-.ring-info-soft{ stroke:var(--plan-ring-info); stroke-dasharray:1 1.4; opacity:0.7; }
-.locate-ping .col-rect{ stroke:var(--plan-footing); stroke-width:2.4; }
-@keyframes matIn{ from{opacity:0;} to{opacity:1;} }
-.pt-mat{ opacity:0; animation:matIn 0.4s ease-out forwards; }
-@media (prefers-reduced-motion:reduce){ .pt-mat{ animation:none; opacity:1; } }
+.zone-card{ border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; margin-bottom:12px; }
+.zone-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+.zone-type{ font-family:var(--font-mono); font-size:11px; color:var(--accent); border:1px solid var(--accent); border-radius:3px; padding:1px 7px; }
 
-.condition-toggles{ display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; font-size:12.8px; color:var(--text-dim); }
-.condition-toggles label{ display:flex; align-items:center; gap:6px; }
+.toast{ position:fixed; bottom:20px; right:20px; background:var(--text); color:var(--bg); padding:10px 16px; border-radius:4px; font-size:13px; z-index:50; max-width:320px; }
 
-.cond-summary{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; font-size:13px; }
-.cond-summary li{ display:flex; gap:9px; align-items:baseline; }
-
-.opt-row{ padding:12px 0; border-top:1px solid var(--border-soft); }
-.opt-row:first-child{ border-top:none; padding-top:0; }
-.opt-row p{ margin:0 0 8px; font-size:13px; }
-
-.elev-svg{ width:100%; max-width:420px; height:150px; }
-.elev-label{ fill:var(--text); font-family:var(--font-mono); font-size:0.42px; }
-.elev-line-ground{ stroke:var(--text-dim); stroke-width:0.06; }
-.elev-line-found{ stroke:var(--accent); stroke-width:0.06; }
-.elev-line-water{ stroke:var(--fail); stroke-width:0.05; stroke-dasharray:0.2 0.15; }
-
-.dim-line{ stroke:var(--text-dim); stroke-width:1; vector-effect:non-scaling-stroke; }
-.dim-label{ fill:var(--text-dim); font-family:var(--font-mono); font-size:0.32px; }
-.drawing-outline{ fill:none; stroke:var(--accent); stroke-width:1.4; vector-effect:non-scaling-stroke; }
-
-.toast{
-  position:fixed; bottom:20px; left:50%; transform:translate(-50%,10px); background:var(--panel-raised);
-  border:1px solid var(--border); padding:11px 18px; border-radius:var(--radius); font-size:13px;
-  box-shadow:0 6px 20px rgba(0,0,0,.22); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50;
-  max-width:88vw;
-}
-.toast.show{ opacity:1; transform:translate(-50%,0); }
-
-@media (max-width:780px){
-  .layout{ flex-direction:column; }
-  .sidebar{ width:100%; display:flex; overflow-x:auto; border-right:none; border-bottom:1px solid var(--border); padding:6px 4px; }
-  .sidebar button{ flex-direction:column; align-items:flex-start; white-space:nowrap; width:auto; border-left:none; border-bottom:2px solid transparent; padding:8px 12px; gap:4px; }
-  .sidebar button.active{ border-bottom-color:var(--accent); border-left-color:transparent; }
-  .titleblock{ font-size:11px; padding:10px 16px; }
+@media (max-width: 820px){
+  .app{ flex-direction:column; }
+  .sidebar{ width:100%; height:auto; position:relative; flex-direction:row; overflow-x:auto; border-right:none; border-bottom:1px solid var(--line); }
+  .brand{ border-bottom:none; border-right:1px solid var(--line); flex-shrink:0; }
+  .nav{ display:flex; padding:10px; gap:4px; }
+  .nav-note{ display:none; }
+  .nav-item{ flex-direction:column; gap:4px; text-align:center; flex-shrink:0; width:78px; }
+  .nav-name{ font-size:10.5px; line-height:1.2; }
   .content{ padding:18px 16px 60px; }
-  .form-grid{ grid-template-columns:1fr 1fr; }
+  .topbar{ padding:14px 16px; flex-wrap:wrap; }
+  .field-grid{ grid-template-columns:1fr 1fr; }
 }
-@media (max-width:480px){
-  .form-grid{ grid-template-columns:1fr; }
+@media (prefers-reduced-motion: no-preference){
+  .nav-item, .btn{ transition:background .12s ease, border-color .12s ease; }
 }
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="titleblock" id="titleblock"></header>
-  <div class="disclaimer"><b>Prototype:</b> sizing and design checks use simplified formulas for illustration. Have a licensed structural engineer verify any design before construction.</div>
-  <div class="layout">
-    <nav class="sidebar" id="sidebar"></nav>
-    <main class="content" id="content"></main>
-  </div>
-  <div class="toast" id="toast"></div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">Foundation Works</div>
+      <div class="brand-sub">ETABS reactions → SAFE E2K</div>
+    </div>
+    <div class="nav-note" id="navNote"></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="topTitle">Project setup</h1>
+        <div class="module-label" id="topModuleLabel">MODULE 01 / 25</div>
+      </div>
+      <div class="chips" id="statusChips"></div>
+    </header>
+    <div class="content" id="content"></div>
+  </main>
 </div>
-
+<div id="toastHost"></div>
 <script>
-(function(){
 'use strict';
 
-/* ---------------------------------------------------------------------- */
-/* State                                                                  */
-/* ---------------------------------------------------------------------- */
+/* ============================================================
+   MODULE REGISTRY
+   ============================================================ */
+var MODULES = [
+  {id:1,  name:'Project setup',        phase:1},
+  {id:2,  name:'Import ETABS reactions', phase:1},
+  {id:3,  name:'Element detection',    phase:1},
+  {id:4,  name:'Reaction database',    phase:1},
+  {id:5,  name:'Foundation plan',      phase:1},
+  {id:6,  name:'Condition detection',  phase:1},
+  {id:7,  name:'Foundation type',      phase:1},
+  {id:8,  name:'Auto grouping',        phase:1},
+  {id:9,  name:'Manual grouping',      phase:1},
+  {id:10, name:'Foundation zones',     phase:1},
+  {id:11, name:'Auto sizing',          phase:1},
+  {id:12, name:'Foundation design check', phase:1},
+  {id:13, name:'Wall / core design',   phase:2, note:'Separate shear-wall, lift-core and combined-wall footing design, with connected walls grouped automatically.'},
+  {id:14, name:'Raft design',          phase:2, note:'Multiple independent rafts, each with its own length, width, thickness, soil support, mesh and design strips.'},
+  {id:15, name:'Strip design',         phase:2, note:'Multiple strips, continuous or segmented, each with its own width, thickness and reinforcement.'},
+  {id:16, name:'Interaction check',    phase:2, note:'Building-wide clash check: footing/strip/raft overlap, clearances, boundary and duplicate-foundation checks.'},
+  {id:17, name:'Optimization',         phase:2, note:'One-click optimize: smaller footings, better grouping, strip vs. isolated, raft zoning — subject to your approval.'},
+  {id:18, name:'2D / 3D view',         phase:2, note:'Full 3D view of columns, walls, footings, strips, rafts and core with dimensions, IDs and reinforcement.'},
+  {id:19, name:'Drawings',             phase:2, note:'Automatic foundation plan, footing/strip/raft sections and reinforcement details.'},
+  {id:20, name:'Design summary',       phase:2, note:'One master report: ID, type, size, thickness, Pmax, punching, shear, steel and status for every element.'},
+  {id:21, name:'SAFE preview',         phase:2, note:'Pre-flight view of everything about to go into SAFE — supports, zones, materials, soil, combos and loads.'},
+  {id:22, name:'E2K generator',        phase:2, note:'Writes the SAFE .e2k file: geometry, supports, walls, foundation objects, materials, sections and loads.'},
+  {id:23, name:'E2K validation',       phase:2, note:'Automatic pre-export check of units, coordinates, supports, combinations, geometry and materials.'},
+  {id:24, name:'Export',               phase:2, note:'SAFE .e2k, project .json, design report PDF, foundation schedule, drawing PDF, reaction CSV.'},
+  {id:25, name:'Save / load project',  phase:1}
+];
 
-var PHASES = {
-  setup:{ idx:1, label:'Setup', lede:'Set the design code, units, soil bearing capacity, material grades and levels this project uses.' },
-  import:{ idx:2, label:'Import', lede:'Bring in support reactions from ETABS, or load the sample project to explore the workflow.' },
-  identify:{ idx:3, label:'Identify & reactions', lede:'Columns and walls are classified automatically, and governing reactions are listed per support.' },
-  plan:{ idx:4, label:'Plan & conditions', lede:'The foundation plan, with closely-spaced, corner, edge and uplift conditions flagged.' },
-  group:{ idx:5, label:'Grouping & type', lede:'Elements are grouped into foundation zones and assigned a foundation type.' },
-  sizing:{ idx:6, label:'Sizing & checks', lede:'Footings are auto-sized from the governing loads, then checked for bearing, punching shear and flexure.' },
-  special:{ idx:7, label:'Special foundations', lede:'Core walls, strip walls and raft zones, handled as connected groups.' },
-  review:{ idx:8, label:'Review & optimize', lede:'Check for interference between foundations, and compare isolated versus combined options.' },
-  output:{ idx:9, label:'Output & export', lede:'The design summary, a SAFE readiness check, and export to a SAFE-compatible E2K file.' }
-};
+var STORAGE_KEY='fdnworks_project_v1';
+var COVER_ASSUMED_BAR=20;
+var CONCRETE_DENSITY=24;
+var TAU_BD={20:1.2,25:1.4,30:1.5,35:1.7,40:1.9};
+var BAR_SIZES=[10,12,16,20,25,32];
 
-var state = {
-  phase:'setup',
-  settings:{ projectName:'Meridian Plaza — Block C', code:'IS 456:2000', sbc:220, concrete:'M30', steel:'Fe500', cover:50, foundationLevel:-2.5, waterTable:-4.0 },
-  points:[], groups:[], imported:false, importLog:[],
-  conditions:{ closelySpaced:[], uplift:[], corner:[], edge:[] },
-  showConditions:{ closelySpaced:true, uplift:true, corner:false, edge:false },
-  _checkDetailId:null, _drawId:null
-};
-
-var plan = { x:-10, y:-10, w:20, h:20 };
-var gridRange = { x0:-10, x1:10, y0:-10, y1:10 };
-var planFitted = false;
-var dragging = false, lastPt = null;
-var downloadsCap = null;
-
-/* ---------------------------------------------------------------------- */
-/* Utilities                                                              */
-/* ---------------------------------------------------------------------- */
-
-function fmt(n,d){ if(d===undefined) d=1; var v=Number(n); if(Number.isNaN(v)) v=0; return v.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}); }
-function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
-function round1(v){ return Math.round(v*10)/10; }
-function round05(v){ return Math.round(v*20)/20; }
-function distance(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
-function esc(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function safeSbc(s){ return (s && s.sbc>0) ? s.sbc : 150; }
-function sanitizeFilename(name){ var s=String(name).trim().replace(/[^\w\- ]+/g,'').replace(/\s+/g,'-').toLowerCase(); return s||'project'; }
-
-/* ---------------------------------------------------------------------- */
-/* Sample data + import parsing                                          */
-/* ---------------------------------------------------------------------- */
-
-function buildSampleModel(){
-  var xs=[0,6,12,18,24], ys=[0,5,10,15];
-  var xl=['1','2','3','4','5'], yl=['A','B','C','D'];
-  var points=[];
-  ys.forEach(function(y,yi){
-    xs.forEach(function(x,xi){
-      var inCore = (yl[yi]==='B'||yl[yi]==='C') && (xl[xi]==='2'||xl[xi]==='3');
-      if(inCore) return;
-      var id = xl[xi]+yl[yi];
-      var edgeX = xi===0||xi===xs.length-1, edgeY = yi===0||yi===ys.length-1;
-      var base = 560 + (2-Math.min(xi,xs.length-1-xi))*70 + (1.5-Math.min(yi,ys.length-1-yi))*55;
-      var Fz = Math.round(base);
-      var FzStrength = Math.round(Fz*1.32);
-      var Mx = (edgeX||edgeY) ? Math.round(16+Math.random()*12) : Math.round(4+Math.random()*5);
-      var My = (edgeX||edgeY) ? Math.round(12+Math.random()*10) : Math.round(3+Math.random()*4);
-      points.push({id:id, kind:'column', x:x, y:y, w:0.5, h:0.5, Fz:Fz, FzStrength:FzStrength, Mx:Mx, My:My});
-    });
-  });
-  var extra = points.filter(function(p){return p.id==='5D';})[0];
-  if(extra) points.push({id:'5D2', kind:'column', x:extra.x-1.8, y:extra.y, w:0.4, h:0.4, Fz:360, FzStrength:486, Mx:9, My:7});
-  var corner = points.filter(function(p){return p.id==='1A';})[0];
-  if(corner) corner.FzStrength = -42;
-
-  var cx0=6, cx1=12, cy0=5, cy1=10;
-  var coreSegs=[
-    {id:'W1', from:[cx0,cy0], to:[cx1,cy0]},
-    {id:'W2', from:[cx1,cy0], to:[cx1,cy1]},
-    {id:'W3', from:[cx1,cy1], to:[cx0,cy1]},
-    {id:'W4', from:[cx0,cy1], to:[cx0,cy0]}
-  ];
-  coreSegs.forEach(function(w){
-    var mx=(w.from[0]+w.to[0])/2, my=(w.from[1]+w.to[1])/2;
-    points.push({id:w.id, kind:'wall', x:mx, y:my, from:w.from, to:w.to, coreTag:true,
-      Fz:2450+Math.round(Math.random()*260), FzStrength:3180+Math.round(Math.random()*260),
-      Mx:42+Math.round(Math.random()*8), My:30+Math.round(Math.random()*8)});
-  });
-  var stripFrom=[12,15], stripTo=[18,15];
-  var smx=(stripFrom[0]+stripTo[0])/2, smy=(stripFrom[1]+stripTo[1])/2;
-  points.push({id:'W5', kind:'wall', x:smx, y:smy, from:stripFrom, to:stripTo, coreTag:false, Fz:1180, FzStrength:1550, Mx:22, My:14});
-
-  return points;
-}
-
-function parseImportText(text){
-  if(!text || !text.trim()) return null;
-  var lines = text.split(/\r?\n/);
-  var found = {};
-  lines.forEach(function(line){
-    var pm = line.match(/POINT\s+"?([\w-]+)"?\s+([\-\d.]+)\s+([\-\d.]+)/i);
-    if(pm){ found[pm[1]] = Object.assign(found[pm[1]]||{}, {id:pm[1], x:parseFloat(pm[2]), y:parseFloat(pm[3])}); }
-    var rm = line.match(/REACTION\s+"?([\w-]+)"?\s+FZ\s+([\-\d.]+)\s+MX\s+([\-\d.]+)\s+MY\s+([\-\d.]+)/i);
-    if(rm){ found[rm[1]] = Object.assign(found[rm[1]]||{id:rm[1]}, {Fz:parseFloat(rm[2]), Mx:parseFloat(rm[3]), My:parseFloat(rm[4])}); }
-  });
-  var ids = Object.keys(found).filter(function(id){ return typeof found[id].x==='number' && !Number.isNaN(found[id].x); });
-  if(!ids.length) return null;
-  return ids.map(function(id){
-    var f = found[id];
-    var Fz = (typeof f.Fz==='number' && !Number.isNaN(f.Fz)) ? f.Fz : 500;
-    return { id:id, kind:'column', x:f.x, y:f.y, w:0.5, h:0.5, Fz:Fz, FzStrength:Fz*1.3,
-      Mx:(typeof f.Mx==='number'?f.Mx:5), My:(typeof f.My==='number'?f.My:5) };
-  });
-}
-
-/* ---------------------------------------------------------------------- */
-/* Classification, conditions, grouping, sizing, checks                  */
-/* ---------------------------------------------------------------------- */
-
-function classify(points){
-  var cols = points.filter(function(p){return p.kind==='column';});
-  if(cols.length){
-    var xs=cols.map(function(p){return p.x;}), ys=cols.map(function(p){return p.y;});
-    var minX=Math.min.apply(null,xs), maxX=Math.max.apply(null,xs);
-    var minY=Math.min.apply(null,ys), maxY=Math.max.apply(null,ys);
-    cols.forEach(function(p){
-      var onX = Math.abs(p.x-minX)<1e-6 || Math.abs(p.x-maxX)<1e-6;
-      var onY = Math.abs(p.y-minY)<1e-6 || Math.abs(p.y-maxY)<1e-6;
-      p.classification = (onX&&onY) ? 'Corner' : (onX||onY ? 'Edge' : 'Interior');
-    });
-  }
-  points.filter(function(p){return p.kind==='wall';}).forEach(function(p){ p.classification = p.coreTag ? 'Core wall' : 'Strip wall'; });
-}
-
-function detectConditions(points){
-  var cols = points.filter(function(p){return p.kind==='column';});
-  var close = {};
-  for(var i=0;i<cols.length;i++){
-    for(var j=i+1;j<cols.length;j++){
-      if(distance(cols[i],cols[j])<3.0){ close[cols[i].id]=1; close[cols[j].id]=1; }
-    }
-  }
+/* ============================================================
+   STATE
+   ============================================================ */
+function defaultState(){
   return {
-    closelySpaced:Object.keys(close),
-    uplift: points.filter(function(p){return p.FzStrength<0;}).map(function(p){return p.id;}),
-    corner: points.filter(function(p){return p.classification==='Corner';}).map(function(p){return p.id;}),
-    edge: points.filter(function(p){return p.classification==='Edge';}).map(function(p){return p.id;})
+    project:null,
+    points:[],
+    reactions:[],
+    loadCases:[],
+    groups:[],
+    zones:[],
+    designs:{},
+    ui:{ current:1, planView:null, selectedPoint:null, reactionFilter:'', planShowCol:true, planShowWall:true, manualSelection:[], zoneSelection:[], importWarnings:[], lastSaved:null }
   };
 }
+function loadState(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    var parsed=JSON.parse(raw);
+    if(!parsed||typeof parsed!=='object') return null;
+    return parsed;
+  }catch(e){ return null; }
+}
+var state = loadState() || defaultState();
+if(!state.ui) state.ui = defaultState().ui;
 
-function autoGroup(points){
-  var groups=[];
-  var cols = points.filter(function(p){return p.kind==='column';});
-  var walls = points.filter(function(p){return p.kind==='wall';});
-  var used = {};
-  cols.forEach(function(p){
-    if(used[p.id]) return;
-    var cluster=[p]; used[p.id]=1;
-    cols.forEach(function(q){ if(!used[q.id] && distance(p,q)<3.0){ cluster.push(q); used[q.id]=1; } });
-    groups.push({
-      id: cluster.length>1 ? 'CMB-'+cluster.map(function(c){return c.id;}).join('/') : 'ISO-'+p.id,
-      memberIds: cluster.map(function(c){return c.id;}),
-      type: cluster.length>1 ? 'Combined footing' : 'Isolated footing'
-    });
-  });
-  var coreWalls = walls.filter(function(w){return w.coreTag;});
-  var otherWalls = walls.filter(function(w){return !w.coreTag;});
-  if(coreWalls.length) groups.push({id:'RAFT-CORE', memberIds:coreWalls.map(function(w){return w.id;}), type:'Core raft'});
-  otherWalls.forEach(function(w){ groups.push({id:'STRIP-'+w.id, memberIds:[w.id], type:'Strip / wall footing'}); });
-  return groups;
+function saveState(){
+  try{ state.ui.lastSaved=Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ /* storage unavailable — continue without persistence */ }
 }
 
-function groupCentroid(g){
-  var members = g.memberIds.map(function(id){ return state.points.filter(function(p){return p.id===id;})[0]; }).filter(Boolean);
-  if(!members.length) return null;
-  var x = members.reduce(function(s,p){return s+p.x;},0)/members.length;
-  var y = members.reduce(function(s,p){return s+p.y;},0)/members.length;
+/* ============================================================
+   UTIL
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function fmt(n,d){ if(n==null||isNaN(n)) return '—'; d=(d==null?2:d); return Number(n).toFixed(d); }
+function uid(prefix){ return prefix+'_'+Math.random().toString(36).slice(2,9); }
+function fckOf(grade){ var m=/M?(\d+)/.exec(grade||''); return m?parseInt(m[1],10):25; }
+function fyOf(grade){ var m=/Fe?(\d+)/.exec(grade||''); return m?parseInt(m[1],10):415; }
+function byId(id){ return state.points.find(function(p){ return p.id===id; }); }
+function toast(msg){
+  var host=document.getElementById('toastHost');
+  var d=document.createElement('div'); d.className='toast'; d.textContent=msg;
+  host.appendChild(d);
+  setTimeout(function(){ d.remove(); },3200);
+}
+
+/* ============================================================
+   IMPORT / PARSING
+   ============================================================ */
+function detectDelimiter(line){
+  if(line.indexOf('\t')>=0) return '\t';
+  var commas=(line.match(/,/g)||[]).length;
+  if(commas>=2) return ',';
+  return /\s+/;
+}
+function splitLine(line, delim){
+  return (delim instanceof RegExp) ? line.trim().split(delim) : line.split(delim);
+}
+var HEADER_ALIASES = {
+  point:['label','point','uniquename','unique name','joint','id','pointid'],
+  loadcase:['outputcase','output case','loadcase','load case','case','combo','combination'],
+  x:['x','xloc','globalx','coordx'],
+  y:['y','yloc','globaly','coordy'],
+  fx:['fx','f1'], fy:['fy','f2'], fz:['fz','f3'],
+  mx:['mx','m1'], my:['my','m2'], mz:['mz','m3'],
+  story:['story','level']
+};
+function mapHeader(cols){
+  var map={};
+  cols.forEach(function(raw,i){
+    var c=raw.trim().toLowerCase().replace(/["']/g,'');
+    for(var key in HEADER_ALIASES){
+      if(HEADER_ALIASES[key].indexOf(c)>=0 && map[key]===undefined) map[key]=i;
+    }
+  });
+  return map;
+}
+function parseReactionText(text){
+  var warnings=[], errors=[];
+  var lines=text.split(/\r?\n/).filter(function(l){ return l.trim().length>0; });
+  if(lines.length<2){ errors.push('File has no data rows.'); return {points:[],reactions:[],loadCases:[],warnings:warnings,errors:errors}; }
+  var delim=detectDelimiter(lines[0]);
+  var headerIdx=0;
+  var map=mapHeader(splitLine(lines[0],delim));
+  if(map.fz===undefined && map.loadcase===undefined && lines.length>2){
+    var map2=mapHeader(splitLine(lines[1],delim));
+    if(map2.fz!==undefined || map2.loadcase!==undefined){ map=map2; headerIdx=1; }
+  }
+  if(map.fz===undefined){ errors.push('Could not find a vertical reaction column (FZ / F3) in the header.'); return {points:[],reactions:[],loadCases:[],warnings:warnings,errors:errors}; }
+  var pointsMap={}, reactions=[], casesSeen=[], seenKey={};
+  function num(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
+  for(var i=headerIdx+1;i<lines.length;i++){
+    var cols=splitLine(lines[i],delim);
+    if(cols.length<2) continue;
+    var pid=(map.point!==undefined?cols[map.point]:('P'+i)).toString().trim();
+    if(!pid) continue;
+    var lc=map.loadcase!==undefined?cols[map.loadcase].trim():'Case1';
+    var fx=map.fx!==undefined?num(cols[map.fx]):0;
+    var fy=map.fy!==undefined?num(cols[map.fy]):0;
+    var fz=map.fz!==undefined?num(cols[map.fz]):0;
+    var mx=map.mx!==undefined?num(cols[map.mx]):0;
+    var my=map.my!==undefined?num(cols[map.my]):0;
+    var mz=map.mz!==undefined?num(cols[map.mz]):0;
+    var key=pid+'|'+lc;
+    if(seenKey[key]) warnings.push('Duplicate row for '+pid+' under '+lc+' — kept the last one.');
+    seenKey[key]=true;
+    reactions.push({pointId:pid, loadCase:lc, fx:fx,fy:fy,fz:fz,mx:mx,my:my,mz:mz});
+    if(casesSeen.indexOf(lc)<0) casesSeen.push(lc);
+    if(!pointsMap[pid]){
+      pointsMap[pid]={
+        id:pid,
+        x: map.x!==undefined?num(cols[map.x]):null,
+        y: map.y!==undefined?num(cols[map.y]):null,
+        type: /^w|wall|core/i.test(pid) ? 'Wall pier' : 'Column',
+        colA:400, colB:400, source:'import'
+      };
+    }
+  }
+  var pts=Object.keys(pointsMap).map(function(k){ return pointsMap[k]; });
+  if(pts.some(function(p){ return p.x==null; })){
+    warnings.push('No X/Y coordinates found — points were arranged on a schematic grid. Edit X/Y in Element detection.');
+    var n=pts.length, gcols=Math.ceil(Math.sqrt(n));
+    pts.forEach(function(p,idx){ if(p.x==null){ p.x=(idx%gcols)*5; p.y=Math.floor(idx/gcols)*5; } });
+  }
+  if(pts.length===0) errors.push('No support points were parsed from this file.');
+  return {points:pts, reactions:reactions, loadCases:casesSeen, warnings:warnings, errors:errors};
+}
+function sampleData(){
+  var cols=[
+    ['C1',0,0],['C11',1.8,0],['C2',6,0],['C3',12,0],['C4',18,0],
+    ['C5',0,6],['C6',18,6],
+    ['C7',0,12],['C8',6,12],['C9',12,12],['C10',18,12],
+    ['W1',9,5.5],['W2',9,6.5]
+  ];
+  var cases=['1.5(DL+LL)','1.2(DL+LL+EQX)','0.9DL-1.5EQX'];
+  var base={C1:620,C11:540,C2:980,C3:960,C4:640,C5:910,C6:905,C7:600,C8:1120,C9:1100,C10:610,W1:1450,W2:1420};
+  var points=cols.map(function(c){
+    var id=c[0],x=c[1],y=c[2];
+    return {id:id,x:x,y:y,type:id[0]==='W'?'Wall pier':'Column',colA:id[0]==='W'?300:450,colB:id[0]==='W'?1200:450,source:'sample'};
+  });
+  var reactions=[];
+  cols.forEach(function(c){
+    var id=c[0], p=base[id];
+    reactions.push({pointId:id, loadCase:cases[0], fx:0, fy:0, fz:p, mx:p*0.02, my:p*0.015, mz:0});
+    reactions.push({pointId:id, loadCase:cases[1], fx:22, fy:14, fz:p*1.08, mx:p*0.05, my:p*0.03, mz:5});
+    var eqZ = (id==='C4'||id==='C10') ? -0.32*p : p*0.55;
+    reactions.push({pointId:id, loadCase:cases[2], fx:-18, fy:-11, fz:eqZ, mx:p*0.04, my:p*0.02, mz:-4});
+  });
+  return {points:points, reactions:reactions, loadCases:cases};
+}
+
+/* ============================================================
+   DERIVED DATA: envelopes, geometry, conditions
+   ============================================================ */
+function reactionsFor(pointId){ return state.reactions.filter(function(r){ return r.pointId===pointId; }); }
+function envelope(pointId){
+  var rs=reactionsFor(pointId);
+  if(!rs.length) return null;
+  var maxFz=rs[0], minFz=rs[0];
+  rs.forEach(function(r){ if(r.fz>maxFz.fz) maxFz=r; if(r.fz<minFz.fz) minFz=r; });
+  return {maxFz:maxFz, minFz:minFz};
+}
+function bbox(){
+  if(!state.points.length) return {minX:0,maxX:10,minY:0,maxY:10};
+  var xs=state.points.map(function(p){return p.x;}), ys=state.points.map(function(p){return p.y;});
+  return {minX:Math.min.apply(null,xs),maxX:Math.max.apply(null,xs),minY:Math.min.apply(null,ys),maxY:Math.max.apply(null,ys)};
+}
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+function computeConditions(){
+  var bb=bbox();
+  var marginX=(bb.maxX-bb.minX)*0.12+0.5, marginY=(bb.maxY-bb.minY)*0.12+0.5;
+  var closeThreshold=2.2;
+  var out={};
+  state.points.forEach(function(p){
+    var nearLeft=(p.x-bb.minX)<=marginX, nearRight=(bb.maxX-p.x)<=marginX;
+    var nearBottom=(p.y-bb.minY)<=marginY, nearTop=(bb.maxY-p.y)<=marginY;
+    var edges=[nearLeft,nearRight,nearBottom,nearTop].filter(Boolean).length;
+    var position = edges>=2?'Corner':edges===1?'Edge':'Interior';
+    var neighbors=state.points.filter(function(q){ return q.id!==p.id && dist(p,q)<closeThreshold; }).map(function(q){ return q.id; });
+    var env=envelope(p.id);
+    var uplift = !!(env && env.minFz.fz<0);
+    out[p.id]={ position:position, neighbors:neighbors, uplift:uplift, env:env };
+  });
+  return out;
+}
+function suggestType(pointId){
+  var cond=computeConditions()[pointId];
+  var p=byId(pointId);
+  if(!cond||!p) return 'Isolated footing';
+  if(cond.uplift) return 'Isolated footing (check uplift)';
+  if(p.type!=='Column') return 'Combined wall footing / core raft';
+  if(cond.neighbors.length>=2) return 'Strip footing';
+  if(cond.neighbors.length===1) return 'Combined footing';
+  if(cond.position==='Corner') return 'Isolated footing (watch eccentricity)';
+  return 'Isolated footing';
+}
+
+/* ============================================================
+   GROUPING
+   ============================================================ */
+function groupOf(pointId){ return state.groups.find(function(g){ return g.memberIds.indexOf(pointId)>=0; }); }
+function autoGroup(){
+  var cond=computeConditions();
+  var manual=state.groups.filter(function(g){ return !g.auto; });
+  var claimed={}; manual.forEach(function(g){ g.memberIds.forEach(function(id){ claimed[id]=true; }); });
+  var cols=state.points.filter(function(p){ return p.type==='Column' && !claimed[p.id]; });
+  var walls=state.points.filter(function(p){ return p.type!=='Column' && !claimed[p.id]; });
+  var parent={}; cols.forEach(function(c){ parent[c.id]=c.id; });
+  function find(x){ while(parent[x]!==x){ parent[x]=parent[parent[x]]; x=parent[x]; } return x; }
+  function union(a,b){ a=find(a); b=find(b); if(a!==b) parent[a]=b; }
+  cols.forEach(function(c){ (cond[c.id]?cond[c.id].neighbors:[]).forEach(function(n){ if(parent[n]!==undefined) union(c.id,n); }); });
+  var clusters={};
+  cols.forEach(function(c){ var r=find(c.id); (clusters[r]=clusters[r]||[]).push(c.id); });
+  var groups=[];
+  Object.keys(clusters).forEach(function(k){
+    var ids=clusters[k];
+    groups.push({ id:uid('grp'), name: ids.length>1?('CF-'+ids.join('+')):('F-'+ids[0]),
+      type: ids.length>1?'Combined':'Isolated', memberIds:ids, auto:true });
+  });
+  if(walls.length){
+    groups.push({ id:uid('grp'), name:'Core-'+walls.map(function(w){return w.id;}).join('+'), type:'Combined wall footing', memberIds:walls.map(function(w){return w.id;}), auto:true });
+  }
+  state.groups = manual.concat(groups);
+  saveState();
+}
+function centroidOf(group){
+  var pts=group.memberIds.map(byId).filter(Boolean);
+  var x=pts.reduce(function(s,p){return s+p.x;},0)/pts.length;
+  var y=pts.reduce(function(s,p){return s+p.y;},0)/pts.length;
   return {x:x,y:y};
 }
-
-function sizeFooting(group, points, settings){
-  var members = group.memberIds.map(function(id){ return points.filter(function(p){return p.id===id;})[0]; }).filter(Boolean);
-  var totalLoad = members.reduce(function(s,p){ return s+Math.max(p.Fz,p.FzStrength,0); },0) || 1;
-  var sbc = safeSbc(settings);
-  var factor = 1.15;
-  var areaReq = (totalLoad*factor)/sbc;
-  var L,B;
-  if(group.type==='Core raft'){
-    var xs = [], ys=[];
-    members.forEach(function(w){ xs.push(w.from[0],w.to[0]); ys.push(w.from[1],w.to[1]); });
-    var margin=1.0;
-    L = (Math.max.apply(null,xs)-Math.min.apply(null,xs)) + 2*margin;
-    B = (Math.max.apply(null,ys)-Math.min.apply(null,ys)) + 2*margin;
-  } else if(group.type==='Strip / wall footing'){
-    var w0 = members[0];
-    var len = Math.hypot(w0.to[0]-w0.from[0], w0.to[1]-w0.from[1]) + 1.0;
-    L = round1(len);
-    B = Math.max(1.0, round1(areaReq/len));
-  } else if(members.length>1){
-    var mxs=members.map(function(m){return m.x;}), mys=members.map(function(m){return m.y;});
-    var spreadX = Math.max.apply(null,mxs)-Math.min.apply(null,mxs)+1.2;
-    var spreadY = Math.max.apply(null,mys)-Math.min.apply(null,mys)+1.2;
-    L = round1(Math.max(spreadX, Math.sqrt(areaReq)));
-    B = round1(Math.max(spreadY*0.6, areaReq/L, 1.0));
-  } else {
-    var side = round1(Math.sqrt(areaReq));
-    L = side; B = side;
-  }
-  L = Math.max(L,1.0); B = Math.max(B,1.0);
-  var t = clamp(round05(0.15 + (totalLoad/6000)), 0.45, 1.2);
-  return { L:L, B:B, t:t, areaReq:areaReq, totalLoad:totalLoad };
-}
-
-function runChecks(group, size, points, settings){
-  var members = group.memberIds.map(function(id){ return points.filter(function(p){return p.id===id;})[0]; }).filter(Boolean);
-  var totalFzService = members.reduce(function(s,p){return s+p.Fz;},0);
-  var totalFzStrength = members.reduce(function(s,p){return s+p.FzStrength;},0);
-  var totalMx = members.reduce(function(s,p){return s+(p.Mx||0);},0);
-  var totalMy = members.reduce(function(s,p){return s+(p.My||0);},0);
-
-  if(totalFzStrength < 0){
-    return { overall:'warn', uplift:true, totalFzStrength:totalFzStrength,
-      note:'Net uplift of '+fmt(Math.abs(totalFzStrength),0)+' kN under the governing strength combination. Check anchorage and footing self-weight against pull-out rather than a bearing check.' };
-  }
-  var A = size.L*size.B;
-  var Sx = (size.B*size.L*size.L)/6;
-  var Sy = (size.L*size.B*size.B)/6;
-  function pressures(totalFz){
-    var pAvg = totalFz/A;
-    return { max: pAvg + Math.abs(totalMx)/Sx + Math.abs(totalMy)/Sy, min: pAvg - Math.abs(totalMx)/Sx - Math.abs(totalMy)/Sy };
-  }
-  var svc = pressures(totalFzService), str = pressures(totalFzStrength);
-  var pMax = Math.max(svc.max, str.max), pMin = Math.min(svc.min, str.min);
-  var sbc = safeSbc(settings);
-  var bearingRatio = pMax/sbc;
-  var bearingStatus = bearingRatio<=0.9 ? 'pass' : (bearingRatio<=1.0 ? 'warn' : 'fail');
-
-  var fck = parseInt((String(settings.concrete).match(/\d+/)||['30'])[0],10);
-  var fy = parseInt((String(settings.steel).match(/\d+/)||['500'])[0],10);
-  var d = Math.max(size.t - (settings.cover/1000) - 0.02, 0.1);
-  var colW=0.5, colH=0.5;
-  var dmm = d*1000;
-  var b0 = 2*((colW*1000)+dmm) + 2*((colH*1000)+dmm);
-  var vc = 0.25*Math.sqrt(fck)*b0*dmm/1000;
-  var punchRatio = totalFzStrength/vc;
-  var punchStatus = punchRatio<=0.75 ? 'pass' : (punchRatio<=1 ? 'warn' : 'fail');
-
-  var cantilever = Math.max((size.L-colW)/2, (size.B-colH)/2, 0.3);
-  var muPerM = pMax*cantilever*cantilever/2;
-  var astReq = (muPerM*1e6)/(0.87*fy*0.9*dmm);
-  var astMin = 0.0012*size.t*1000*1000;
-  var astFinal = Math.max(astReq, astMin);
-  var astStatus = astReq<=astMin ? 'pass' : (astReq<=astMin*1.5 ? 'warn' : 'fail');
-
-  var overall = 'pass';
-  if(bearingStatus==='fail'||punchStatus==='fail'||astStatus==='fail') overall='fail';
-  else if(bearingStatus==='warn'||punchStatus==='warn'||astStatus==='warn') overall='warn';
-
-  return { overall:overall, uplift:false, pMax:pMax, pMin:pMin, bearingRatio:bearingRatio, bearingStatus:bearingStatus,
-    vc:vc, punchRatio:punchRatio, punchStatus:punchStatus, astReq:astFinal, astMin:astMin, astStatus:astStatus,
-    totalFzService:totalFzService, totalFzStrength:totalFzStrength };
-}
-
-function afterImport(points){
-  state.points = points;
-  classify(state.points);
-  state.conditions = detectConditions(state.points);
-  state.groups = autoGroup(state.points).map(function(g){
-    g.size = sizeFooting(g, state.points, state.settings);
-    g.checks = runChecks(g, g.size, state.points, state.settings);
-    return g;
+function combinedLoad(group, loadCase){
+  var rows=group.memberIds.map(function(pid){ return {pid:pid, r:reactionsFor(pid).find(function(rr){ return rr.loadCase===loadCase; })}; }).filter(function(x){ return !!x.r; });
+  if(!rows.length) return null;
+  var c=centroidOf(group);
+  var P=0,M1=0,M2=0;
+  rows.forEach(function(row){
+    var pt=byId(row.pid), r=row.r;
+    P+=r.fz;
+    M1+=r.mx + r.fz*(pt.y-c.y);
+    M2+=r.my + r.fz*(pt.x-c.x);
   });
-  state.imported = true;
-  gridRange = gridRangeFromData();
-  planFitted = false;
-  state._checkDetailId = null;
-  state._drawId = null;
+  return {P:P,M1:M1,M2:M2,cx:c.x,cy:c.y};
+}
+function governingCases(group){
+  var combos=state.loadCases.map(function(lc){ return {lc:lc, v:combinedLoad(group,lc)}; }).filter(function(x){ return !!x.v; });
+  if(!combos.length) return null;
+  var bearing=combos[0], uplift=null;
+  combos.forEach(function(c){
+    if(c.v.P>bearing.v.P) bearing=c;
+    if(c.v.P<0 && (!uplift || c.v.P<uplift.v.P)) uplift=c;
+  });
+  return {bearing:bearing, uplift:uplift};
 }
 
-function gridRangeFromData(){
-  if(!state.points.length) return {x0:-10,x1:10,y0:-10,y1:10};
-  var xs=state.points.map(function(p){return p.x;}), ys=state.points.map(function(p){return p.y;});
-  return { x0:Math.floor(Math.min.apply(null,xs)-8), x1:Math.ceil(Math.max.apply(null,xs)+8),
-    y0:Math.floor(Math.min.apply(null,ys)-8), y1:Math.ceil(Math.max.apply(null,ys)+8) };
-}
+/* ============================================================
+   AUTO SIZING
+   ============================================================ */
+function sizeFooting(group){
+  var proj=state.project; if(!proj) return null;
+  var gov=governingCases(group); if(!gov) return null;
+  var SBC=parseFloat(proj.sbc)||150;
+  var minSize=parseFloat(proj.minFooting)||1.0;
+  var allowTension=!!proj.allowUplift;
+  var memberPts=group.memberIds.map(byId).filter(Boolean);
+  var xs=memberPts.map(function(p){return p.x;}), ys=memberPts.map(function(p){return p.y;});
+  var spanX=Math.max.apply(null,xs)-Math.min.apply(null,xs);
+  var spanY=Math.max.apply(null,ys)-Math.min.apply(null,ys);
+  var minL=Math.max(minSize,spanX+0.6), minB=Math.max(minSize,spanY+0.6);
 
-function checkInterference(){
-  var issues=[];
-  var withFooting = state.groups.filter(function(g){return g.size;});
-  for(var i=0;i<withFooting.length;i++){
-    for(var j=i+1;j<withFooting.length;j++){
-      var a=withFooting[i], b=withFooting[j];
-      var ca=groupCentroid(a), cb=groupCentroid(b);
-      if(!ca||!cb) continue;
-      var dx=Math.abs(ca.x-cb.x), dy=Math.abs(ca.y-cb.y);
-      var overlapX = dx < (a.size.L+b.size.L)/2;
-      var overlapY = dy < (a.size.B+b.size.B)/2;
-      if(overlapX && overlapY) issues.push(a.id+' and '+b.id+' footing outlines overlap — increase spacing or combine into one group.');
+  var P=gov.bearing.v.P, M1=gov.bearing.v.M1, M2=gov.bearing.v.M2;
+  var L=Math.max(minL,Math.ceil(Math.sqrt(Math.max(P,1)/SBC)*10)/10), B=Math.max(minB,L);
+  var bIter=[], bPass=false, qmax=0, qmin=0;
+  for(var i=0;i<60;i++){
+    var A=L*B;
+    qmax=P/A+6*Math.abs(M1)/(B*L*L)+6*Math.abs(M2)/(L*B*B);
+    qmin=P/A-6*Math.abs(M1)/(B*L*L)-6*Math.abs(M2)/(L*B*B);
+    var ok=(qmax<=SBC)&&(allowTension||qmin>=0);
+    bIter.push({L:L,B:B,qmax:qmax,qmin:qmin,pass:ok});
+    if(ok){ bPass=true; break; }
+    L=Math.round((L+0.1)*10)/10; B=Math.round((B+0.1)*10)/10;
+    if(L>8||B>8) break;
+  }
+
+  var result={ L:L,B:B,D:0.5, qmax:qmax,qmin:qmin, governingCase:gov.bearing.lc, P:P,M1:M1,M2:M2, iterations:bIter, pass:bPass };
+
+  if(gov.uplift){
+    var upP=Math.abs(gov.uplift.v.P);
+    var FOS=1.5;
+    var depthCover=Math.max((parseFloat(proj.groundLevel)||0)-(parseFloat(proj.foundationLevel)||0),0.5);
+    var soilDensity=parseFloat(proj.soilDensity)||18;
+    var uL=L, uB=B, uD=0.5, uPass=false, uIter=[];
+    for(var j=0;j<40;j++){
+      var W=uL*uB*uD*CONCRETE_DENSITY + uL*uB*Math.max(depthCover-uD,0)*soilDensity;
+      var uok=W>=FOS*upP;
+      uIter.push({L:uL,B:uB,D:uD,value:W,target:FOS*upP,pass:uok});
+      if(uok){ uPass=true; break; }
+      uD=Math.round((uD+0.1)*10)/10;
+      if(uD>1.8){ uL=Math.round((uL+0.2)*10)/10; uB=Math.round((uB+0.2)*10)/10; uD=0.5; }
+      if(uL>8||uB>8) break;
     }
+    result.L=uL; result.B=uB; result.D=uD;
+    result.upliftForce=upP; result.upliftCase=gov.uplift.lc; result.upliftIterations=uIter; result.upliftPass=uPass;
+    if(!uPass) result.note='Self-weight alone does not resist the uplift case within a practical size — this support needs holding-down anchors or a pile in addition to the pad.';
   }
-  return issues;
+  return result;
 }
 
-function validateModel(){
-  var issues=[];
-  var ids = state.points.map(function(p){return p.id;});
-  var seen={}, dupes=[];
-  ids.forEach(function(id){ if(seen[id]) dupes.push(id); seen[id]=1; });
-  if(dupes.length) issues.push({level:'fail', msg:'Duplicate element IDs: '+dupes.join(', ')+'.'});
-  var badCoord = state.points.filter(function(p){ return Number.isNaN(p.x)||Number.isNaN(p.y); });
-  if(badCoord.length) issues.push({level:'fail', msg:badCoord.length+' element(s) missing coordinates.'});
-  var ungrouped = state.points.filter(function(p){ return !state.groups.some(function(g){return g.memberIds.indexOf(p.id)>-1;}); });
-  if(ungrouped.length) issues.push({level:'warn', msg:ungrouped.length+' element(s) not assigned to a foundation group: '+ungrouped.map(function(p){return p.id;}).join(', ')+'.'});
-  var failing = state.groups.filter(function(g){ return g.checks && g.checks.overall==='fail'; });
-  if(failing.length) issues.push({level:'fail', msg:failing.length+' group(s) failing design checks: '+failing.map(function(g){return g.id;}).join(', ')+'.'});
-  var warning = state.groups.filter(function(g){ return g.checks && (g.checks.overall==='warn'||g.checks.uplift); });
-  if(warning.length) issues.push({level:'warn', msg:warning.length+' group(s) flagged for review: '+warning.map(function(g){return g.id;}).join(', ')+'.'});
-  if(!issues.length) issues.push({level:'pass', msg:'No missing data, duplicates, or failing checks found — ready to preview for SAFE.'});
-  return issues;
-}
-
-/* ---------------------------------------------------------------------- */
-/* Exports                                                                */
-/* ---------------------------------------------------------------------- */
-
-function generateE2KText(){
-  var s = state.settings;
-  var lines=[];
-  lines.push('$ SAFE E2K EXPORT — SIMPLIFIED SCHEMA (prototype)');
-  lines.push('$ Generated by Foundation Design Console — for demonstration only. Verify field mapping against your SAFE version before importing.');
-  lines.push('$ Project: '+s.projectName);
-  lines.push('$ Code: '+s.code+'   Units: kN, m   SBC: '+fmt(s.sbc,0)+' kPa');
-  lines.push('$ Concrete: '+s.concrete+'   Steel: '+s.steel+'   Cover: '+fmt(s.cover,0)+' mm   Foundation level: '+fmt(s.foundationLevel,1)+' m');
-  lines.push('');
-  lines.push('$ POINT COORDINATES');
-  state.points.forEach(function(p){ lines.push('  POINT "'+p.id+'"  '+p.x.toFixed(2)+'  '+p.y.toFixed(2)); });
-  lines.push('');
-  lines.push('$ SUPPORT REACTIONS (governing, strength level)');
-  state.points.forEach(function(p){ lines.push('  REACTION "'+p.id+'"  FZ '+p.FzStrength.toFixed(1)+'  MX '+(p.Mx||0).toFixed(1)+'  MY '+(p.My||0).toFixed(1)); });
-  lines.push('');
-  lines.push('$ FOUNDATION ZONES');
-  state.groups.forEach(function(g){ lines.push('  ZONE "'+g.id+'"  TYPE "'+g.type+'"  MEMBERS '+g.memberIds.join(',')+'  L '+g.size.L.toFixed(2)+'  B '+g.size.B.toFixed(2)+'  T '+g.size.t.toFixed(2)); });
-  lines.push('');
-  lines.push('$ END — simplified export for this prototype.');
-  return lines.join('\n');
-}
-function csvCell(v){ var s=String(v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
-function fmtPlain(n,d){ if(d===undefined) d=1; var v=Number(n); if(Number.isNaN(v)) v=0; return v.toFixed(d); }
-function generateSummaryCSV(){
-  var header=['Group','Type','L (m)','B (m)','t (m)','Pmax (kPa)','Pmin (kPa)','Punch ratio','Ast (mm2/m)','Status'];
-  var rows = state.groups.map(function(g){
-    var c=g.checks;
-    return [g.id,g.type,fmtPlain(g.size.L,2),fmtPlain(g.size.B,2),fmtPlain(g.size.t,2),
-      (c&&!c.uplift)?fmtPlain(c.pMax,1):'', (c&&!c.uplift)?fmtPlain(c.pMin,1):'',
-      (c&&!c.uplift)?fmtPlain(c.punchRatio,2):'', (c&&!c.uplift)?fmtPlain(c.astReq,0):'',
-      c?(c.uplift?'uplift-warn':c.overall):''];
-  });
-  return [header].concat(rows).map(function(r){ return r.map(csvCell).join(','); }).join('\n');
-}
-function generateReactionsCSV(){
-  var header=['ID','Type','Classification','X (m)','Y (m)','Fz service (kN)','Fz strength (kN)','Mx (kNm)','My (kNm)','Condition'];
-  var rows = state.points.map(function(p){
-    return [p.id,p.kind,p.classification||'',fmtPlain(p.x,2),fmtPlain(p.y,2),fmtPlain(p.Fz,0),fmtPlain(p.FzStrength,0),fmtPlain(p.Mx||0,1),fmtPlain(p.My||0,1),(p.FzStrength<0?'Uplift':'Compression')];
-  });
-  return [header].concat(rows).map(function(r){ return r.map(csvCell).join(','); }).join('\n');
-}
-
-function saveProjectLocal(){
-  try{ localStorage.setItem('fdc-project-v1', JSON.stringify(state)); showToast('Project saved to this browser.'); }
-  catch(e){ showToast('Could not save — storage may be full or blocked.'); }
-}
-function loadProjectLocal(){
-  try{
-    var raw = localStorage.getItem('fdc-project-v1');
-    if(!raw){ showToast('No saved project found in this browser.'); return; }
-    var loaded = JSON.parse(raw);
-    state = Object.assign({}, state, loaded);
-    gridRange = gridRangeFromData();
-    planFitted = false;
-    showToast('Project loaded.');
-  }catch(e){ showToast('Could not load the saved project.'); }
-}
-
-async function downloadText(filename, text){
-  if(!downloadsCap){ showToast('Downloads aren\'t available in this view.'); return; }
-  try{
-    await downloadsCap.save({filename:filename, data:text});
-    showToast('Saved '+filename+'.');
-  }catch(err){
-    var code = err && err.code;
-    if(code==='declined') showToast('Download cancelled.');
-    else showToast('Could not save the file.');
-  }
-}
-async function initDownloads(){
-  try{ downloadsCap = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null; }
-  catch(e){ downloadsCap = null; }
-  refreshDownloadButtons();
-}
-function refreshDownloadButtons(){
-  var btns = document.querySelectorAll('.js-download');
-  for(var i=0;i<btns.length;i++){
-    btns[i].disabled = !downloadsCap;
-    btns[i].title = downloadsCap ? '' : "File downloads aren't available in this view.";
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-/* Toast                                                                  */
-/* ---------------------------------------------------------------------- */
-
-var toastTimer=null;
-function showToast(msg){
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3200);
-}
-
-/* ---------------------------------------------------------------------- */
-/* Plan view (SVG)                                                        */
-/* ---------------------------------------------------------------------- */
-
-function fitPlan(){
-  if(!state.points.length) return;
-  var pad=4;
-  var xs=state.points.map(function(p){return p.x;}), ys=state.points.map(function(p){return p.y;});
-  var minX=Math.min.apply(null,xs)-pad, maxX=Math.max.apply(null,xs)+pad;
-  var minY=Math.min.apply(null,ys)-pad, maxY=Math.max.apply(null,ys)+pad;
-  plan = { x:minX, y:-maxY, w:(maxX-minX), h:(maxY-minY) };
-  applyViewBoxAttr();
-}
-function applyViewBoxAttr(){
-  var svgEl = document.getElementById('planSvg');
-  if(svgEl) svgEl.setAttribute('viewBox', plan.x+' '+plan.y+' '+plan.w+' '+plan.h);
-}
-function zoomPlan(factor){
-  var cx=plan.x+plan.w/2, cy=plan.y+plan.h/2;
-  var w=clamp(plan.w*factor,4,140), h=clamp(plan.h*factor,4,140);
-  plan.w=w; plan.h=h; plan.x=cx-w/2; plan.y=cy-h/2;
-  applyViewBoxAttr();
-}
-function locatePoint(p){ plan = {x:p.x-6, y:-p.y-6, w:12, h:12}; applyViewBoxAttr(); }
-function pingPoint(id){
-  var svgEl = document.getElementById('planSvg');
-  if(!svgEl) return;
-  var els = svgEl.querySelectorAll('[data-pt-id]');
-  for(var i=0;i<els.length;i++){
-    if(els[i].getAttribute('data-pt-id')===id){
-      (function(el){ el.classList.add('locate-ping'); setTimeout(function(){ el.classList.remove('locate-ping'); },1600); })(els[i]);
+/* ============================================================
+   FOUNDATION DESIGN CHECK (isolated footings get full shear/flexure;
+   combined footings get bearing + eccentricity only in phase 1)
+   ============================================================ */
+function designCheck(group, sizing){
+  if(!sizing) return null;
+  var proj=state.project;
+  var fck=fckOf(proj.concreteGrade), fy=fyOf(proj.steelGrade);
+  var cover=parseFloat(proj.cover)||50;
+  var D=(sizing.D||0.5)*1000;
+  var d=D-cover-COVER_ASSUMED_BAR;
+  var L=sizing.L, B=sizing.B;
+  var qavg=sizing.P/(L*B);
+  var eccX=Math.abs(sizing.M2)/sizing.P, eccY=Math.abs(sizing.M1)/sizing.P;
+  var result={
+    fck:fck, fy:fy, D:D, d:d,
+    bearing:{ qmax:sizing.qmax, qmin:sizing.qmin, sbc:parseFloat(proj.sbc), ok: sizing.qmax<=parseFloat(proj.sbc) },
+    eccentricity:{ eccX:eccX, eccY:eccY, limX:L/6, limY:B/6, ok: eccX<=L/6+1e-6 && eccY<=B/6+1e-6 },
+    isolated: group.memberIds.length===1,
+    dirX:null, dirY:null, punching:null
+  };
+  if(group.memberIds.length!==1) return result;
+  var p0=byId(group.memberIds[0]);
+  var colA=(p0.colA||400)/1000, colB=(p0.colB||400)/1000;
+  function oneWay(cantilever,width){
+    var critX=cantilever-d/1000;
+    if(critX<=0){
+      var BwZ=width*1000, AstminZ=0.0012*BwZ*D, barZ=BAR_SIZES[1], spacingZ=300;
+      for(var kz=0;kz<BAR_SIZES.length;kz++){
+        var bz=BAR_SIZES[kz];
+        var sz=Math.floor((Math.PI/4*bz*bz*1000/AstminZ)/10)*10;
+        if(sz>=75){ barZ=bz; spacingZ=Math.min(sz,300); break; }
+      }
+      return {applicable:false, Ast:AstminZ, Astmin:AstminZ, bar:barZ, spacing:spacingZ, Ld:0, available:0, devOK:true, shearOK:true, Vu:0, Vc:0, cantilever:cantilever, Mu:0};
     }
-  }
-}
-function onPointerDown(e){ dragging=true; lastPt={x:e.clientX,y:e.clientY}; }
-function onPointerMove(e){
-  if(!dragging) return;
-  var svgEl = document.getElementById('planSvg');
-  if(!svgEl) return;
-  var rect = svgEl.getBoundingClientRect();
-  if(!rect.width||!rect.height) return;
-  var scaleX = plan.w/rect.width, scaleY = plan.h/rect.height;
-  var dx=(e.clientX-lastPt.x)*scaleX, dy=(e.clientY-lastPt.y)*scaleY;
-  plan.x -= dx; plan.y -= dy;
-  lastPt = {x:e.clientX,y:e.clientY};
-  applyViewBoxAttr();
-}
-function onPointerUp(){ dragging=false; lastPt=null; }
-function onWheel(e){ e.preventDefault(); zoomPlan(e.deltaY>0?1.12:0.89); }
-function attachPlanEvents(){
-  var svgEl = document.getElementById('planSvg');
-  if(!svgEl) return;
-  svgEl.addEventListener('pointerdown', onPointerDown);
-  svgEl.addEventListener('wheel', onWheel, {passive:false});
-}
-
-function renderPlanSVG(){
-  if(!state.points.length) return '<div class="plan-empty">No elements yet — import a model to see the plan.</div>';
-  var cols = state.points.filter(function(p){return p.kind==='column';});
-  var walls = state.points.filter(function(p){return p.kind==='wall';});
-
-  var gridLines='';
-  for(var gx=gridRange.x0; gx<=gridRange.x1; gx++){
-    var majorX = (gx%5===0);
-    gridLines += '<line x1="'+gx+'" y1="'+(-gridRange.y1)+'" x2="'+gx+'" y2="'+(-gridRange.y0)+'" class="'+(majorX?'grid-major':'grid-minor')+'"/>';
-  }
-  for(var gy=gridRange.y0; gy<=gridRange.y1; gy++){
-    var majorY = (gy%5===0);
-    gridLines += '<line x1="'+gridRange.x0+'" y1="'+(-gy)+'" x2="'+gridRange.x1+'" y2="'+(-gy)+'" class="'+(majorY?'grid-major':'grid-minor')+'"/>';
-  }
-
-  var footingShapes='';
-  state.groups.forEach(function(g){
-    if(!g.size) return;
-    var c = groupCentroid(g);
-    if(!c) return;
-    footingShapes += '<rect x="'+(c.x-g.size.L/2)+'" y="'+(-c.y-g.size.B/2)+'" width="'+g.size.L+'" height="'+g.size.B+'" class="footing-outline"/>';
-  });
-
-  var wallShapes = walls.map(function(w){
-    return '<line data-pt-id="'+w.id+'" x1="'+w.from[0]+'" y1="'+(-w.from[1])+'" x2="'+w.to[0]+'" y2="'+(-w.to[1])+'" class="wall-line"/>';
-  }).join('');
-
-  var colShapes = cols.map(function(p,i){
-    var isClose = state.showConditions.closelySpaced && state.conditions.closelySpaced.indexOf(p.id)>-1;
-    var isUplift = state.showConditions.uplift && state.conditions.uplift.indexOf(p.id)>-1;
-    var isCorner = state.showConditions.corner && p.classification==='Corner';
-    var isEdge = state.showConditions.edge && p.classification==='Edge';
-    var ring='';
-    if(isClose) ring += '<circle cx="'+p.x+'" cy="'+(-p.y)+'" r="0.55" class="ring ring-warn"/>';
-    if(isUplift) ring += '<circle cx="'+p.x+'" cy="'+(-p.y)+'" r="0.7" class="ring ring-fail"/>';
-    if(isCorner) ring += '<circle cx="'+p.x+'" cy="'+(-p.y)+'" r="0.42" class="ring ring-info"/>';
-    if(isEdge) ring += '<circle cx="'+p.x+'" cy="'+(-p.y)+'" r="0.42" class="ring ring-info-soft"/>';
-    var pw=p.w||0.5, ph=p.h||0.5;
-    var delay = Math.min(i*14,400);
-    return '<g data-pt-id="'+p.id+'" class="pt-mat" style="animation-delay:'+delay+'ms">'+ring+
-      '<rect x="'+(p.x-pw/2)+'" y="'+(-p.y-ph/2)+'" width="'+pw+'" height="'+ph+'" class="col-rect"/>'+
-      '<text x="'+p.x+'" y="'+(-p.y-ph/2-0.28)+'" text-anchor="middle" class="pt-label">'+esc(p.id)+'</text>'+
-      '</g>';
-  }).join('');
-
-  var vb = plan.x+' '+plan.y+' '+plan.w+' '+plan.h;
-  return '<svg id="planSvg" viewBox="'+vb+'" preserveAspectRatio="xMidYMid meet">'+
-    '<g class="grid">'+gridLines+'</g>'+
-    '<g class="footings">'+footingShapes+'</g>'+
-    '<g class="walls">'+wallShapes+'</g>'+
-    '<g class="cols">'+colShapes+'</g>'+
-    '</svg>';
-}
-
-function renderDrawing(id){
-  var g = state.groups.filter(function(gg){return gg.id===id;})[0];
-  if(!g || !g.size) return '<p class="note">No footing selected.</p>';
-  var L=g.size.L, B=g.size.B, t=g.size.t;
-  var pad=0.6;
-  var vbW=L+pad*2, vbH=B+pad*2+t+1.2;
-  return '<svg viewBox="0 0 '+vbW+' '+vbH+'" class="drawing-svg">'+
-    '<rect x="'+pad+'" y="'+pad+'" width="'+L+'" height="'+B+'" class="drawing-outline"/>'+
-    '<line x1="'+pad+'" y1="'+(pad-0.15)+'" x2="'+(pad+L)+'" y2="'+(pad-0.15)+'" class="dim-line"/>'+
-    '<text x="'+(pad+L/2)+'" y="'+(pad-0.25)+'" text-anchor="middle" class="dim-label">'+fmt(L,2)+' m</text>'+
-    '<line x1="'+(pad-0.15)+'" y1="'+pad+'" x2="'+(pad-0.15)+'" y2="'+(pad+B)+'" class="dim-line"/>'+
-    '<text x="'+(pad-0.32)+'" y="'+(pad+B/2)+'" text-anchor="middle" class="dim-label" transform="rotate(-90 '+(pad-0.32)+' '+(pad+B/2)+')">'+fmt(B,2)+' m</text>'+
-    '<g transform="translate(0 '+(pad+B+0.8)+')">'+
-    '<rect x="'+pad+'" y="0" width="'+L+'" height="'+t+'" class="drawing-outline"/>'+
-    '<text x="'+(pad+L/2)+'" y="'+(t+0.42)+'" text-anchor="middle" class="dim-label">Section — thickness '+fmt(t,2)+' m</text>'+
-    '</g></svg>';
-}
-
-function renderElevationStrip(){
-  var s = state.settings;
-  var gl=0, fl=s.foundationLevel, wt=s.waterTable;
-  var minY=Math.min(gl,fl,wt)-1, maxY=Math.max(gl,fl,wt)+1;
-  var h=maxY-minY;
-  function sy(v){ return maxY-v; }
-  return '<svg viewBox="0 0 12 '+h+'" class="elev-svg" preserveAspectRatio="none">'+
-    '<line x1="0" y1="'+sy(gl)+'" x2="12" y2="'+sy(gl)+'" class="elev-line-ground"/>'+
-    '<text x="0.3" y="'+(sy(gl)-0.25)+'" class="elev-label">Ground level 0.0 m</text>'+
-    '<line x1="0" y1="'+sy(fl)+'" x2="12" y2="'+sy(fl)+'" class="elev-line-found"/>'+
-    '<text x="0.3" y="'+(sy(fl)-0.25)+'" class="elev-label">Foundation level '+fmt(fl,1)+' m</text>'+
-    '<line x1="0" y1="'+sy(wt)+'" x2="12" y2="'+sy(wt)+'" class="elev-line-water"/>'+
-    '<text x="0.3" y="'+(sy(wt)-0.25)+'" class="elev-label">Water table '+fmt(wt,1)+' m</text>'+
-    '</svg>';
-}
-
-/* ---------------------------------------------------------------------- */
-/* Phase renderers                                                        */
-/* ---------------------------------------------------------------------- */
-
-function statusBadge(status){
-  var label = status==='pass'?'Pass':status==='warn'?'Warning':'Fail';
-  return '<span class="status '+status+'">'+label+'</span>';
-}
-function emptyState(msg){
-  return '<div class="panel empty-state"><p>'+esc(msg)+'</p><button class="btn" data-action="nav" data-phase="import">Go to Import</button></div>';
-}
-
-function renderSetup(){
-  var s = state.settings;
-  var codes=['IS 456:2000','ACI 318-19','EC2 / BS 8110','SBC 304'];
-  var concretes=['M20','M25','M30','M35','M40','M45'];
-  var steels=['Fe415','Fe500','Fe550'];
-  return '<div class="panel"><h2>Project settings</h2><div class="form-grid">'+
-    '<div class="field"><label for="f-name">Project name</label><input id="f-name" type="text" data-bind="settings.projectName" value="'+esc(s.projectName)+'"></div>'+
-    '<div class="field"><label for="f-code">Design code</label><select id="f-code" data-bind="settings.code">'+
-      codes.map(function(c){ return '<option value="'+c+'" '+(s.code===c?'selected':'')+'>'+c+'</option>'; }).join('')+
-    '</select></div>'+
-    '<div class="field"><label>Units</label><input type="text" value="kN · m · kPa (metric)" disabled></div>'+
-    '<div class="field"><label for="f-sbc">Safe bearing capacity, SBC (kPa)</label><input id="f-sbc" type="number" step="5" data-bind="settings.sbc" value="'+s.sbc+'"></div>'+
-    '<div class="field"><label for="f-conc">Concrete grade</label><select id="f-conc" data-bind="settings.concrete">'+
-      concretes.map(function(c){ return '<option '+(s.concrete===c?'selected':'')+'>'+c+'</option>'; }).join('')+
-    '</select></div>'+
-    '<div class="field"><label for="f-steel">Steel grade</label><select id="f-steel" data-bind="settings.steel">'+
-      steels.map(function(c){ return '<option '+(s.steel===c?'selected':'')+'>'+c+'</option>'; }).join('')+
-    '</select></div>'+
-    '<div class="field"><label for="f-cover">Cover (mm)</label><input id="f-cover" type="number" step="5" data-bind="settings.cover" value="'+s.cover+'"></div>'+
-    '<div class="field"><label for="f-fl">Foundation level (m)</label><input id="f-fl" type="number" step="0.1" data-bind="settings.foundationLevel" value="'+s.foundationLevel+'"></div>'+
-    '<div class="field"><label for="f-wt">Water table (m)</label><input id="f-wt" type="number" step="0.1" data-bind="settings.waterTable" value="'+s.waterTable+'"></div>'+
-    '</div></div>'+
-    '<div class="callout">These settings drive every check downstream — bearing capacity, material grades and cover feed straight into the sizing and design-check calculations. Grades are shown as fck / fy in MPa (IS-style notation) for consistency across codes in this prototype.</div>';
-}
-
-function renderImport(){
-  var log = state.importLog.length ? '<div class="panel"><h2>Import log</h2><ul class="log-list">'+
-    state.importLog.map(function(l){ return '<li class="log-'+l.level+'">'+esc(l.msg)+'</li>'; }).join('')+'</ul></div>' : '';
-  return '<div class="panel"><h2>Import support reactions</h2>'+
-    '<p class="hint">Paste reactions in the simplified demo format below, or load the sample project to see the full workflow immediately. Wall and core elements are only in the sample project — the pasted format covers column supports.</p>'+
-    '<textarea id="importText" rows="6" placeholder="POINT &quot;C1&quot; 0 0&#10;REACTION &quot;C1&quot; FZ 850 MX 12 MY -8"></textarea>'+
-    '<div class="btn-row"><button class="btn" data-action="parse-import">Parse & import</button>'+
-    '<button class="btn secondary" data-action="load-sample">Load sample project</button></div></div>'+log;
-}
-
-function renderIdentify(){
-  if(!state.imported) return emptyState('Import a model first to see identified elements and reactions here.');
-  var clsOpts=['Corner','Edge','Interior','Core wall','Strip wall'];
-  var rows = state.points.map(function(p){
-    var uplift = p.FzStrength<0;
-    return '<tr><td class="mono">'+p.id+'</td><td>'+(p.kind==='column'?'Column':'Wall')+'</td>'+
-      '<td><select data-bind="points.'+p.id+'.classification">'+
-        clsOpts.map(function(c){ return '<option '+(p.classification===c?'selected':'')+'>'+c+'</option>'; }).join('')+
-      '</select></td>'+
-      '<td class="num">'+fmt(p.x,2)+'</td><td class="num">'+fmt(p.y,2)+'</td>'+
-      '<td class="num"><input type="number" class="cell-input" data-bind="points.'+p.id+'.Fz" value="'+fmt(p.Fz,0)+'" step="10"></td>'+
-      '<td class="num"><input type="number" class="cell-input" data-bind="points.'+p.id+'.FzStrength" value="'+fmt(p.FzStrength,0)+'" step="10"></td>'+
-      '<td class="num"><input type="number" class="cell-input" data-bind="points.'+p.id+'.Mx" value="'+fmt(p.Mx||0,1)+'" step="1"></td>'+
-      '<td class="num"><input type="number" class="cell-input" data-bind="points.'+p.id+'.My" value="'+fmt(p.My||0,1)+'" step="1"></td>'+
-      '<td>'+(uplift?'<span class="status fail">Uplift</span>':'<span class="status pass">Compression</span>')+'</td></tr>';
-  }).join('');
-  return '<div class="panel"><h2>Element identification & reactions</h2><div class="table-wrap"><table class="data">'+
-    '<thead><tr><th>ID</th><th>Type</th><th>Classification</th><th>X (m)</th><th>Y (m)</th><th>Fz service (kN)</th><th>Fz strength (kN)</th><th>Mx (kNm)</th><th>My (kNm)</th><th>Condition</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></div>'+
-    '<div class="btn-row"><button class="btn secondary" data-action="recalc-sizing">Recalculate sizing & checks</button></div></div>'+
-    '<div class="callout">Reactions follow ETABS sign convention: positive Fz is compression (downward on the support); negative Fz is uplift. Edit values above, then recalculate.</div>';
-}
-
-function renderPlanPhase(){
-  if(!state.imported) return emptyState('Import a model first to see the foundation plan here.');
-  var opts = state.points.map(function(p){ return '<option value="'+p.id+'">'; }).join('');
-  var cs = state.conditions;
-  return '<div class="panel plan-panel"><div class="plan-toolbar">'+
-    '<div class="toolbar-group"><button class="btn secondary small" data-action="plan-zoom" data-factor="0.8">Zoom in</button>'+
-    '<button class="btn secondary small" data-action="plan-zoom" data-factor="1.25">Zoom out</button>'+
-    '<button class="btn secondary small" data-action="plan-fit">Fit plan</button></div>'+
-    '<div class="toolbar-group"><input type="text" id="locateInput" placeholder="Locate element ID…" list="pointIds"><datalist id="pointIds">'+opts+'</datalist>'+
-    '<button class="btn secondary small" data-action="plan-locate">Locate</button></div></div>'+
-    '<div class="plan-wrap" id="planWrap">'+renderPlanSVG()+'</div>'+
-    '<div class="condition-toggles">'+
-    '<label><input type="checkbox" data-action="toggle-cond" data-cond="closelySpaced" '+(state.showConditions.closelySpaced?'checked':'')+'> Closely spaced</label>'+
-    '<label><input type="checkbox" data-action="toggle-cond" data-cond="uplift" '+(state.showConditions.uplift?'checked':'')+'> Uplift</label>'+
-    '<label><input type="checkbox" data-action="toggle-cond" data-cond="corner" '+(state.showConditions.corner?'checked':'')+'> Corner</label>'+
-    '<label><input type="checkbox" data-action="toggle-cond" data-cond="edge" '+(state.showConditions.edge?'checked':'')+'> Edge</label>'+
-    '</div></div>'+
-    '<div class="panel"><h2>Condition summary</h2><ul class="cond-summary">'+
-    '<li>'+statusBadge('warn')+' Closely spaced — '+cs.closelySpaced.length+' element(s): '+(cs.closelySpaced.join(', ')||'none')+'</li>'+
-    '<li>'+statusBadge('fail')+' Uplift — '+cs.uplift.length+' element(s): '+(cs.uplift.join(', ')||'none')+'</li>'+
-    '<li>'+statusBadge('pass')+' Corner — '+cs.corner.length+' element(s)</li>'+
-    '<li>'+statusBadge('pass')+' Edge — '+cs.edge.length+' element(s)</li>'+
-    '</ul></div>';
-}
-
-function renderGroup(){
-  if(!state.imported) return emptyState('Import a model first to see foundation groups here.');
-  var typeOpts=['Isolated footing','Combined footing','Strip / wall footing','Core raft','Raft/mat','Strap footing'];
-  var rows = state.groups.map(function(g){
-    return '<tr><td><input type="checkbox" class="grp-check" value="'+g.id+'"></td>'+
-      '<td class="mono">'+g.id+'</td><td>'+g.memberIds.join(', ')+'</td>'+
-      '<td><select data-bind="groups.'+g.id+'.type">'+
-        typeOpts.map(function(t){ return '<option '+(g.type===t?'selected':'')+'>'+t+'</option>'; }).join('')+
-      '</select></td>'+
-      '<td class="num">'+(g.size?fmt(g.size.L,2)+' × '+fmt(g.size.B,2):'—')+'</td>'+
-      '<td>'+(g.memberIds.length>1?'<button class="btn secondary small" data-action="split-group" data-id="'+g.id+'">Split</button>':'')+'</td></tr>';
-  }).join('');
-  return '<div class="panel"><h2>Foundation groups</h2><div class="table-wrap"><table class="data">'+
-    '<thead><tr><th></th><th>Group ID</th><th>Members</th><th>Foundation type</th><th>Size (m)</th><th></th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></div>'+
-    '<div class="btn-row"><button class="btn secondary" data-action="merge-groups">Merge selected</button>'+
-    '<button class="btn secondary" data-action="auto-group">Re-run auto grouping</button></div></div>'+
-    '<div class="callout">Auto grouping combines columns closer than 3 m and treats connected wall segments as one core or strip group. Override the type, merge nearby isolated footings, or split a combined group back apart.</div>';
-}
-
-function renderCheckDetail(){
-  var withChecks = state.groups.filter(function(g){return g.checks;});
-  if(!withChecks.length) return '';
-  var selected = (state._checkDetailId && withChecks.some(function(g){return g.id===state._checkDetailId;})) ? state._checkDetailId : withChecks[0].id;
-  var opts = withChecks.map(function(g){ return '<option value="'+g.id+'" '+(g.id===selected?'selected':'')+'>'+g.id+'</option>'; }).join('');
-  var g = withChecks.filter(function(x){return x.id===selected;})[0];
-  var c = g.checks;
-  var body;
-  if(c.uplift){
-    body = '<p class="note">'+esc(c.note)+'</p>';
-  } else {
-    body = '<ul class="check-list">'+
-      '<li>'+statusBadge(c.bearingStatus)+' Bearing pressure — Pmax '+fmt(c.pMax,1)+' kPa vs SBC '+fmt(state.settings.sbc,0)+' kPa (ratio '+fmt(c.bearingRatio,2)+')</li>'+
-      '<li>'+statusBadge(c.punchStatus)+' Punching shear — demand/capacity ratio '+fmt(c.punchRatio,2)+' (Vc ≈ '+fmt(c.vc,0)+' kN)</li>'+
-      '<li>'+statusBadge(c.astStatus)+' Flexure — Ast required ≈ '+fmt(c.astReq,0)+' mm²/m (minimum '+fmt(c.astMin,0)+' mm²/m)</li>'+
-      '</ul>';
-  }
-  return '<h2>Check detail — <select id="checkDetailSelect" data-action="select-check-detail">'+opts+'</select></h2>'+body;
-}
-
-function renderSizing(){
-  if(!state.imported) return emptyState('Import a model first to size and check footings here.');
-  var rows = state.groups.map(function(g){
-    var c = g.checks;
-    return '<tr><td class="mono">'+g.id+'</td><td>'+g.type+'</td>'+
-      '<td class="num"><input type="number" step="0.1" class="cell-input" data-bind="groups.'+g.id+'.size.L" value="'+fmt(g.size.L,2)+'"></td>'+
-      '<td class="num"><input type="number" step="0.1" class="cell-input" data-bind="groups.'+g.id+'.size.B" value="'+fmt(g.size.B,2)+'"></td>'+
-      '<td class="num"><input type="number" step="0.05" class="cell-input" data-bind="groups.'+g.id+'.size.t" value="'+fmt(g.size.t,2)+'"></td>'+
-      '<td class="num">'+(c&&!c.uplift?fmt(c.pMax,1):'—')+'</td>'+
-      '<td class="num">'+(c&&!c.uplift?fmt(c.pMin,1):'—')+'</td>'+
-      '<td>'+(c?statusBadge(c.uplift?'warn':c.overall):'')+'</td>'+
-      '<td><button class="btn secondary small" data-action="recheck-group" data-id="'+g.id+'">Recheck</button></td></tr>';
-  }).join('');
-  return '<div class="panel"><h2>Auto footing sizing & design checks</h2><div class="table-wrap"><table class="data">'+
-    '<thead><tr><th>Group</th><th>Type</th><th>L (m)</th><th>B (m)</th><th>t (m)</th><th>Pmax (kPa)</th><th>Pmin (kPa)</th><th>Status</th><th></th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></div>'+
-    '<div class="btn-row"><button class="btn secondary" data-action="autosize-all">Auto-size all (reset overrides)</button></div></div>'+
-    '<div class="panel" id="checkDetail">'+renderCheckDetail()+'</div>'+
-    '<div class="callout">Sizing uses a preliminary area rule (governing load ÷ safe bearing capacity, factored) and a punching-perimeter thickness estimate. Bearing, punching shear and flexure use standard simplified forms for a first pass — verify final sizes and reinforcement against your design code with a licensed structural engineer before construction.</div>';
-}
-
-function renderSpecial(){
-  if(!state.imported) return emptyState('Import a model first to see wall, core, strip and raft foundations here.');
-  var core = state.groups.filter(function(g){return g.type==='Core raft';})[0];
-  var strips = state.groups.filter(function(g){return g.type==='Strip / wall footing';});
-  var coreBody;
-  if(core){
-    coreBody = '<p>Connected wall segments '+core.memberIds.join(', ')+' are treated as one group under a single raft, '+fmt(core.size.L,2)+' × '+fmt(core.size.B,2)+' m.</p>';
-    if(core.checks && !core.checks.uplift){
-      coreBody += '<ul class="check-list">'+
-        '<li>'+statusBadge(core.checks.bearingStatus)+' Bearing — Pmax '+fmt(core.checks.pMax,1)+' kPa vs SBC '+fmt(state.settings.sbc,0)+' kPa</li>'+
-        '<li>'+statusBadge(core.checks.punchStatus)+' Punching shear ratio '+fmt(core.checks.punchRatio,2)+'</li></ul>';
-    } else if(core.checks){
-      coreBody += '<p class="note">'+esc(core.checks.note)+'</p>';
+    var Vu=qavg*width*critX;
+    var MuKnm=qavg*width*cantilever*cantilever/2;
+    var Bw=width*1000, MuNmm=MuKnm*1e6;
+    var disc=1-(4.6*MuNmm)/(fck*Bw*d*d);
+    var Ast = disc>0 ? 0.5*fck/fy*Bw*d*(1-Math.sqrt(disc)) : Bw*d*10;
+    var Astmin=0.0012*Bw*D;
+    Ast=Math.max(Ast,Astmin);
+    var pt=Math.min(Math.max(100*Ast/(Bw*d),0.15),3);
+    var beta=Math.max(0.8*fck/(6.89*pt),1);
+    var tauc=(0.85*Math.sqrt(0.8*fck)*(Math.sqrt(1+5*beta)-1))/(6*beta);
+    var Vc=tauc*Bw*d/1000;
+    var bar=BAR_SIZES[1], spacing=300;
+    for(var k=0;k<BAR_SIZES.length;k++){
+      var b=BAR_SIZES[k];
+      var s=Math.floor((Math.PI/4*b*b*1000/Ast)/10)*10;
+      if(s>=75){ bar=b; spacing=Math.min(s,300); break; }
     }
-  } else {
-    coreBody = '<p class="note">No core wall group in this project.</p>';
+    var tbdBase=TAU_BD[Math.round(fck/5)*5]||1.4;
+    var Ld=(bar*0.87*fy)/(4*tbdBase*1.6);
+    var available=cantilever*1000-cover;
+    return {applicable:true, cantilever:cantilever, Mu:MuKnm, Ast:Ast, Astmin:Astmin, pt:pt, tauc:tauc, Vu:Vu, Vc:Vc, shearOK:Vu<=Vc, bar:bar, spacing:spacing, Ld:Ld, available:available, devOK:Ld<=available};
   }
-  var stripBody = strips.length ? strips.map(function(s){
-    return '<p>'+s.id+' — wall '+s.memberIds.join(', ')+', sized '+fmt(s.size.L,2)+' m long × '+fmt(s.size.B,2)+' m wide. '+statusBadge(s.checks.uplift?'warn':s.checks.overall)+'</p>';
-  }).join('') : '<p class="note">No standalone wall/strip groups in this project.</p>';
-  return '<div class="panel"><h2>Shear wall / lift core</h2>'+coreBody+'</div>'+
-    '<div class="panel"><h2>Strip foundation</h2>'+stripBody+'</div>'+
-    '<div class="panel"><h2>Raft foundation</h2><p class="note">The core raft above is sized from tributary wall loads. Full mesh, soil-spring and design-strip analysis for rafts happens in SAFE — this console prepares geometry, loads and the raft outline for that export rather than running its own finite-element analysis.</p></div>';
+  result.dirX=oneWay((L-colA)/2, B);
+  result.dirY=oneWay((B-colB)/2, L);
+  var aC=colA*1000+d, bC=colB*1000+d;
+  var cond=(computeConditions()[group.memberIds[0]]||{position:'Interior'}).position;
+  var b0=2*(aC+bC);
+  if(cond==='Edge') b0=aC+2*bC;
+  if(cond==='Corner') b0=aC+bC;
+  var bc=Math.max(colA,colB)/Math.min(colA,colB);
+  var ks=Math.min(0.5+bc,1.0);
+  var tauPunch=ks*0.25*Math.sqrt(fck);
+  var critArea=(aC/1000)*(bC/1000);
+  var VuP=qavg*(L*B-critArea);
+  var VcP=tauPunch*b0*d/1000;
+  result.punching={ position:cond, b0:b0, Vu:VuP, Vc:VcP, ok:VuP<=VcP };
+  return result;
 }
 
-function renderOptimizeRow(g){
-  var members = g.memberIds.map(function(id){ return state.points.filter(function(p){return p.id===id;})[0]; });
-  var isoTotalArea = members.reduce(function(s,m){ return s + (Math.max(m.Fz,m.FzStrength)*1.15)/safeSbc(state.settings); },0);
-  var isoVolume = isoTotalArea*0.5;
-  var combinedArea = g.size.L*g.size.B;
-  var combinedVolume = combinedArea*g.size.t;
-  return '<div class="opt-row"><p><strong>'+g.id+'</strong> ('+g.memberIds.join(', ')+')</p>'+
-    '<table class="data compact"><thead><tr><th></th><th>Footprint area</th><th>Concrete volume</th></tr></thead><tbody>'+
-    '<tr><td>Isolated, separate</td><td class="num">'+fmt(isoTotalArea,1)+' m²</td><td class="num">'+fmt(isoVolume,1)+' m³</td></tr>'+
-    '<tr><td>Combined</td><td class="num">'+fmt(combinedArea,1)+' m²</td><td class="num">'+fmt(combinedVolume,1)+' m³</td></tr>'+
-    '</tbody></table><p class="hint">To use isolated footings instead, split this group from Grouping & type.</p></div>';
-}
-
-function renderReview(){
-  if(!state.imported) return emptyState('Import a model first to review interference and optimization options here.');
-  var interference = checkInterference();
-  var combinedGroups = state.groups.filter(function(g){return g.type==='Combined footing' && g.memberIds.length>1;});
-  var interferenceBody = interference.length ?
-    '<ul class="check-list">'+interference.map(function(i){ return '<li>'+statusBadge('warn')+' '+esc(i)+'</li>'; }).join('')+'</ul>' :
-    '<p class="note">'+statusBadge('pass')+' No overlaps or clearance violations found between footing outlines.</p>';
-  var optBody = combinedGroups.length ? combinedGroups.map(renderOptimizeRow).join('') : '<p class="note">No closely-spaced clusters in this project to compare.</p>';
-  return '<div class="panel"><h2>Foundation interaction check</h2>'+interferenceBody+'</div>'+
-    '<div class="panel"><h2>Optimization — isolated vs combined</h2>'+optBody+'</div>'+
-    '<div class="panel"><h2>2D / 3D model</h2><p class="note">The plan view (Plan & conditions) is the 2D model. A full 3D model — columns, walls, footings and rafts as solids — is beyond this prototype\'s scope; below is a schematic depth strip using the foundation and water table levels from Setup.</p>'+renderElevationStrip()+'</div>';
-}
-
-function renderOutput(){
-  if(!state.imported) return emptyState('Import a model first to see the design summary and export options here.');
-  var summaryRows = state.groups.map(function(g){
-    var c=g.checks;
-    return '<tr><td class="mono">'+g.id+'</td><td>'+g.type+'</td>'+
-      '<td class="num">'+fmt(g.size.L,2)+'×'+fmt(g.size.B,2)+'×'+fmt(g.size.t,2)+'</td>'+
-      '<td class="num">'+(c&&!c.uplift?fmt(c.pMax,1):'—')+'</td>'+
-      '<td class="num">'+(c&&!c.uplift?fmt(c.pMin,1):'—')+'</td>'+
-      '<td class="num">'+(c&&!c.uplift?fmt(c.punchRatio,2):'—')+'</td>'+
-      '<td class="num">'+(c&&!c.uplift?fmt(c.astReq,0):'—')+'</td>'+
-      '<td>'+(c?statusBadge(c.uplift?'warn':c.overall):'')+'</td></tr>';
-  }).join('');
-  var readiness = validateModel();
-  var drawSel = (state._drawId && state.groups.some(function(g){return g.id===state._drawId;})) ? state._drawId : (state.groups[0] ? state.groups[0].id : null);
-  var drawOpts = state.groups.map(function(g){ return '<option value="'+g.id+'" '+(g.id===drawSel?'selected':'')+'>'+g.id+'</option>'; }).join('');
-  return '<div class="panel"><h2>Design summary</h2><div class="table-wrap"><table class="data">'+
-    '<thead><tr><th>Group</th><th>Type</th><th>L×B×t (m)</th><th>Pmax</th><th>Pmin</th><th>Punch ratio</th><th>Ast (mm²/m)</th><th>Status</th></tr></thead>'+
-    '<tbody>'+summaryRows+'</tbody></table></div></div>'+
-    '<div class="panel"><h2>Drawing preview</h2><select id="drawSelect" data-action="select-drawing">'+drawOpts+'</select>'+
-    '<div class="plan-wrap small" id="drawWrap">'+(drawSel?renderDrawing(drawSel):'')+'</div>'+
-    '<p class="hint">Schematic plan and section for the selected group — dimensions only, not full reinforcement detailing.</p></div>'+
-    '<div class="panel"><h2>SAFE preview & validation</h2><ul class="check-list">'+
-    readiness.map(function(r){ return '<li>'+statusBadge(r.level)+' '+esc(r.msg)+'</li>'; }).join('')+
-    '</ul><div class="btn-row"><button class="btn secondary" data-action="validate">Re-validate</button></div></div>'+
-    '<div class="panel"><h2>Export</h2><div class="btn-row">'+
-    '<button class="btn js-download" data-action="download-e2k" disabled>Download SAFE E2K (.txt)</button>'+
-    '<button class="btn secondary js-download" data-action="download-summary" disabled>Download design summary (.csv)</button>'+
-    '<button class="btn secondary js-download" data-action="download-reactions" disabled>Download reactions (.csv)</button>'+
-    '</div><p class="hint">The E2K export uses a simplified schema for this prototype — check field mapping against your SAFE version before importing.</p></div>'+
-    '<div class="panel"><h2>Save / load project</h2><div class="btn-row">'+
-    '<button class="btn secondary" data-action="save-project">Save to this browser</button>'+
-    '<button class="btn secondary" data-action="load-project">Load saved project</button>'+
-    '</div><p class="hint">Saved locally in this browser only — not shared with anyone else who opens this page.</p></div>';
-}
-
-/* ---------------------------------------------------------------------- */
-/* Render dispatch                                                        */
-/* ---------------------------------------------------------------------- */
-
-function renderTitleblock(){
-  var s = state.settings;
-  document.getElementById('titleblock').innerHTML =
-    '<div class="name">'+esc(s.projectName||'Untitled project')+'</div>'+
-    '<div class="field">Code <b>'+esc(s.code)+'</b></div>'+
-    '<div class="field">SBC <b>'+fmt(s.sbc,0)+' kPa</b></div>'+
-    '<div class="field">Concrete <b>'+esc(s.concrete)+'</b></div>'+
-    '<div class="field">Steel <b>'+esc(s.steel)+'</b></div>'+
-    '<div class="field">Cover <b>'+fmt(s.cover,0)+' mm</b></div>';
+/* ============================================================
+   NAV / SHELL
+   ============================================================ */
+function moduleHasData(id){
+  switch(id){
+    case 1: return !!state.project;
+    case 2: return state.points.length>0;
+    case 3: return state.points.length>0;
+    case 4: return state.reactions.length>0;
+    case 5: return state.points.length>0;
+    case 6: return state.points.length>0;
+    case 7: return state.points.length>0;
+    case 8: return state.groups.some(function(g){return g.auto;});
+    case 9: return state.groups.some(function(g){return !g.auto;});
+    case 10: return state.zones.length>0;
+    case 11: return Object.keys(state.designs).length>0;
+    case 12: return Object.keys(state.designs).length>0;
+    case 25: return true;
+    default: return false;
+  }
 }
 function renderSidebar(){
-  var nav = document.getElementById('sidebar');
-  var keys = Object.keys(PHASES);
-  nav.innerHTML = keys.map(function(key){
-    var p = PHASES[key];
-    var idxStr = (p.idx<10?'0':'')+p.idx;
-    return '<button data-action="nav" data-phase="'+key+'" class="'+(state.phase===key?'active':'')+'"><span class="idx">'+idxStr+'</span>'+p.label+'</button>';
+  var nav=document.getElementById('nav');
+  document.getElementById('navNote').textContent='12 of 25 modules are live — the rest are mapped out below.';
+  nav.innerHTML = MODULES.map(function(m){
+    var active=state.ui.current===m.id;
+    var locked=m.phase===2;
+    var done=!locked && moduleHasData(m.id);
+    return '<div class="nav-item '+(active?'active':'')+' '+(locked?'locked':'')+'" onclick="setModule('+m.id+')">'+
+      '<span class="nav-num">'+String(m.id).padStart(2,'0')+'</span>'+
+      '<span class="nav-dot '+(done?'done':'')+' '+(active?'current':'')+'"></span>'+
+      '<span class="nav-name">'+esc(m.name)+'</span></div>';
   }).join('');
 }
-function renderPhase(){
-  renderSidebar();
-  var p = PHASES[state.phase];
-  var content = document.getElementById('content');
-  var body='';
-  switch(state.phase){
-    case 'setup': body=renderSetup(); break;
-    case 'import': body=renderImport(); break;
-    case 'identify': body=renderIdentify(); break;
-    case 'plan': body=renderPlanPhase(); break;
-    case 'group': body=renderGroup(); break;
-    case 'sizing': body=renderSizing(); break;
-    case 'special': body=renderSpecial(); break;
-    case 'review': body=renderReview(); break;
-    case 'output': body=renderOutput(); break;
-  }
-  content.innerHTML = '<h1>'+p.label+'</h1><p class="lede">'+p.lede+'</p>'+body;
-  content.scrollTop = 0;
-  if(state.phase==='plan'){
-    if(!planFitted){ fitPlan(); planFitted=true; }
-    attachPlanEvents();
-  }
-  refreshDownloadButtons();
+function renderTopbar(){
+  var m=MODULES.find(function(x){return x.id===state.ui.current;});
+  document.getElementById('topTitle').textContent=m.name;
+  document.getElementById('topModuleLabel').textContent='MODULE '+String(m.id).padStart(2,'0')+' / 25';
+  var chips=[];
+  if(state.project && state.project.name) chips.push(esc(state.project.name));
+  if(state.points.length) chips.push(state.points.length+' supports');
+  if(state.loadCases.length) chips.push(state.loadCases.length+' load cases');
+  if(state.groups.length) chips.push(state.groups.length+' footing groups');
+  document.getElementById('statusChips').innerHTML=chips.map(function(c){return '<span class="chip">'+c+'</span>';}).join('');
 }
-function renderAll(){ renderTitleblock(); renderPhase(); }
+function setModule(id){ state.ui.current=id; saveState(); render(); }
+function render(){ renderSidebar(); renderTopbar(); renderContent(); }
+function renderContent(){
+  var id=state.ui.current;
+  var c=document.getElementById('content');
+  var m=MODULES.find(function(x){return x.id===id;});
+  if(m.phase===2){ c.innerHTML=renderPhase2(m); return; }
+  var fns={1:renderM1,2:renderM2,3:renderM3,4:renderM4,5:renderM5,6:renderM6,7:renderM7,8:renderM8,9:renderM9,10:renderM10,11:renderM11,12:renderM12,25:renderM25};
+  c.innerHTML = fns[id] ? fns[id]() : '<div class="empty"><h3>Coming soon</h3></div>';
+  if(id===5) wirePlan();
+}
+function renderPhase2(m){
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">'+esc(m.name)+' — phase 2</div>'+
+    '<div class="panel-hint">'+esc(m.note||'')+'</div></div></div>'+
+    '<p style="color:var(--text-dim);font-size:13px;">This module isn\'t built yet. Modules 01–12 and 25 are working now — everything you set up there carries straight through once this one ships.</p></div>';
+}
+function emptyState(title,body,goId,cta){
+  return '<div class="panel"><div class="empty"><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p>'+
+    '<button class="btn" onclick="setModule('+goId+')">'+esc(cta)+'</button></div></div>';
+}
 
-/* ---------------------------------------------------------------------- */
-/* Data binding                                                          */
-/* ---------------------------------------------------------------------- */
-
-function setPath(path, value){
-  var parts = path.split('.');
-  if(parts[0]==='settings'){ state.settings[parts[1]] = value; }
-  else if(parts[0]==='points'){
-    var p = state.points.filter(function(pp){return pp.id===parts[1];})[0];
-    if(p) p[parts[2]] = value;
-  } else if(parts[0]==='groups'){
-    var g = state.groups.filter(function(gg){return gg.id===parts[1];})[0];
-    if(g){
-      if(parts[2]==='size'){ g.size[parts[3]] = value; g.manualSize = true; }
-      else g[parts[2]] = value;
-    }
+/* ============================================================
+   MODULE 1 — PROJECT SETUP
+   ============================================================ */
+function ensureProjectDefaults(){
+  if(!state.project){
+    state.project={name:'',code:'IS 456:2000',units:'kN, m',sbc:150,concreteGrade:'M25',steelGrade:'Fe415',cover:50,foundationLevel:0,groundLevel:0,waterTable:'',soilDensity:18,soilFriction:30,minFooting:1.2,allowUplift:false};
   }
 }
-function handleBind(el){
-  var path = el.dataset.bind;
-  if(!path) return;
-  var raw = el.value, value;
-  if(el.type==='number'){ value = parseFloat(raw); if(Number.isNaN(value)) value = 0; }
-  else { value = raw; }
-  setPath(path, value);
-  if(path.indexOf('settings.')===0) renderTitleblock();
-}
-
-/* ---------------------------------------------------------------------- */
-/* Actions                                                                */
-/* ---------------------------------------------------------------------- */
-
-function handleAction(action, el){
-  switch(action){
-    case 'nav': state.phase = el.dataset.phase; renderPhase(); break;
-    case 'parse-import': {
-      var text = document.getElementById('importText').value;
-      var parsed = parseImportText(text);
-      if(parsed && parsed.length){
-        afterImport(parsed);
-        state.importLog = [{level:'pass', msg:'Imported '+parsed.length+' point(s) from pasted text.'}];
-      } else {
-        afterImport(buildSampleModel());
-        state.importLog = [{level:'warn', msg:'No recognizable reactions found in the pasted text — loaded the sample project instead so you can explore the workflow.'}];
-      }
-      renderPhase();
-      break;
+function renderM1(){
+  ensureProjectDefaults();
+  var p=state.project;
+  function field(key,label,type,opts){
+    var val=p[key]!=null?p[key]:'';
+    if(type==='select'){
+      return '<div class="field"><label>'+label+'</label><select onchange="updateProject(\''+key+'\',this.value)">'+
+        opts.map(function(o){return '<option value="'+o+'" '+(val===o?'selected':'')+'>'+o+'</option>';}).join('')+'</select></div>';
     }
-    case 'load-sample': {
-      var model = buildSampleModel();
-      afterImport(model);
-      var nCol = model.filter(function(p){return p.kind==='column';}).length;
-      var nWall = model.filter(function(p){return p.kind==='wall';}).length;
-      state.importLog = [{level:'pass', msg:'Sample project loaded: '+nCol+' columns and '+nWall+' wall segments.'}];
-      renderPhase();
-      break;
-    }
-    case 'recalc-sizing': {
-      state.groups.forEach(function(g){
-        var size = g.manualSize ? g.size : sizeFooting(g, state.points, state.settings);
-        g.size = size;
-        g.checks = runChecks(g, size, state.points, state.settings);
-      });
-      showToast('Sizing and checks recalculated from current reactions.');
-      renderPhase();
-      break;
-    }
-    case 'merge-groups': {
-      var checkedEls = document.querySelectorAll('.grp-check:checked');
-      var checked = Array.prototype.map.call(checkedEls, function(c){return c.value;});
-      if(checked.length<2){ showToast('Select two or more groups to merge.'); break; }
-      var merging = state.groups.filter(function(g){return checked.indexOf(g.id)>-1;});
-      var allWalls = merging.every(function(g){ return g.type==='Core raft'||g.type==='Strip / wall footing'; });
-      if(allWalls){ showToast('Wall groups already represent connected segments — merge isolated column footings instead.'); break; }
-      var memberIds = [];
-      merging.forEach(function(g){ memberIds = memberIds.concat(g.memberIds); });
-      var newGroup = { id:'CMB-'+memberIds.join('/'), memberIds:memberIds, type:'Combined footing' };
-      newGroup.size = sizeFooting(newGroup, state.points, state.settings);
-      newGroup.checks = runChecks(newGroup, newGroup.size, state.points, state.settings);
-      state.groups = state.groups.filter(function(g){return checked.indexOf(g.id)===-1;});
-      state.groups.push(newGroup);
-      showToast('Merged '+checked.length+' groups into '+newGroup.id+'.');
-      renderPhase();
-      break;
-    }
-    case 'split-group': {
-      var id = el.dataset.id;
-      var g = state.groups.filter(function(gg){return gg.id===id;})[0];
-      if(!g || g.memberIds.length<2) break;
-      state.groups = state.groups.filter(function(gg){return gg.id!==id;});
-      g.memberIds.forEach(function(mid){
-        var ng = {id:'ISO-'+mid, memberIds:[mid], type:'Isolated footing'};
-        ng.size = sizeFooting(ng, state.points, state.settings);
-        ng.checks = runChecks(ng, ng.size, state.points, state.settings);
-        state.groups.push(ng);
-      });
-      showToast('Split '+id+' back into '+g.memberIds.length+' isolated footings.');
-      renderPhase();
-      break;
-    }
-    case 'auto-group': {
-      state.groups = autoGroup(state.points).map(function(g){
-        g.size = sizeFooting(g, state.points, state.settings);
-        g.checks = runChecks(g, g.size, state.points, state.settings);
-        return g;
-      });
-      showToast('Groups recomputed from current elements.');
-      renderPhase();
-      break;
-    }
-    case 'recheck-group': {
-      var rid = el.dataset.id;
-      var rg = state.groups.filter(function(gg){return gg.id===rid;})[0];
-      if(!rg) break;
-      rg.manualSize = true;
-      rg.checks = runChecks(rg, rg.size, state.points, state.settings);
-      showToast('Rechecked '+rid+' with the current size.');
-      renderPhase();
-      break;
-    }
-    case 'autosize-all': {
-      state.groups.forEach(function(g){
-        g.manualSize = false;
-        g.size = sizeFooting(g, state.points, state.settings);
-        g.checks = runChecks(g, g.size, state.points, state.settings);
-      });
-      showToast('All footings auto-sized from current loads.');
-      renderPhase();
-      break;
-    }
-    case 'select-check-detail': {
-      state._checkDetailId = el.value;
-      document.getElementById('checkDetail').innerHTML = renderCheckDetail();
-      break;
-    }
-    case 'plan-zoom': zoomPlan(parseFloat(el.dataset.factor)); break;
-    case 'plan-fit': fitPlan(); break;
-    case 'plan-locate': {
-      var val = document.getElementById('locateInput').value.trim();
-      var pt = state.points.filter(function(pp){return pp.id.toLowerCase()===val.toLowerCase();})[0];
-      if(pt){ locatePoint(pt); pingPoint(pt.id); } else { showToast('No element with ID "'+val+'" found.'); }
-      break;
-    }
-    case 'toggle-cond': {
-      state.showConditions[el.dataset.cond] = el.checked;
-      document.getElementById('planWrap').innerHTML = renderPlanSVG();
-      attachPlanEvents();
-      break;
-    }
-    case 'select-drawing': {
-      state._drawId = el.value;
-      document.getElementById('drawWrap').innerHTML = renderDrawing(state._drawId);
-      break;
-    }
-    case 'validate': renderPhase(); showToast('Re-validated.'); break;
-    case 'download-e2k': downloadText(sanitizeFilename(state.settings.projectName)+'-safe-export.txt', generateE2KText()); break;
-    case 'download-summary': downloadText(sanitizeFilename(state.settings.projectName)+'-design-summary.csv', generateSummaryCSV()); break;
-    case 'download-reactions': downloadText(sanitizeFilename(state.settings.projectName)+'-reactions.csv', generateReactionsCSV()); break;
-    case 'save-project': saveProjectLocal(); break;
-    case 'load-project': loadProjectLocal(); renderAll(); break;
+    return '<div class="field"><label>'+label+'</label><input type="'+type+'" value="'+esc(val)+'" oninput="updateProjectField(\''+key+'\',this.value)"></div>';
   }
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Project setup</div>'+
+    '<div class="panel-hint">These values drive every check downstream — bearing capacity, cover, material grades and levels.</div></div></div>'+
+    '<div class="field-grid">'+
+    field('name','Project name','text')+
+    field('code','Design code','select',['IS 456:2000','ACI 318','Eurocode 2','BS 8110'])+
+    field('units','Units','select',['kN, m','kN, mm','kip, ft'])+
+    field('sbc','Safe bearing capacity (kN/m²)','number')+
+    field('concreteGrade','Concrete grade','select',['M20','M25','M30','M35','M40'])+
+    field('steelGrade','Steel grade','select',['Fe415','Fe500','Fe550'])+
+    field('cover','Cover (mm)','number')+
+    field('foundationLevel','Foundation level (m)','number')+
+    field('groundLevel','Ground level (m)','number')+
+    field('waterTable','Water table depth (m)','number')+
+    field('soilDensity','Soil unit weight (kN/m³)','number')+
+    field('soilFriction','Soil friction angle φ (°)','number')+
+    field('minFooting','Minimum footing size (m)','number')+
+    '</div>'+
+    '<div class="checkbox-field" style="margin-top:14px;"><input type="checkbox" id="allowUplift" '+(p.allowUplift?'checked':'')+' onchange="updateProject(\'allowUplift\',this.checked)">'+
+    '<label for="allowUplift">Allow partial base tension for eccentric loads (skip strict qmin ≥ 0)</label></div>'+
+    '<div class="btn-row"><button class="btn" onclick="confirmProject()">Save &amp; continue to import</button></div></div>';
+}
+function updateProject(key,val){ ensureProjectDefaults(); state.project[key]=val; saveState(); render(); }
+function updateProjectField(key,val){ ensureProjectDefaults(); state.project[key]=val; saveState(); }
+function confirmProject(){
+  if(!state.project || !state.project.name){ toast('Give the project a name first.'); return; }
+  toast('Project saved.'); setModule(2);
 }
 
-/* ---------------------------------------------------------------------- */
-/* Init                                                                   */
-/* ---------------------------------------------------------------------- */
+/* ============================================================
+   MODULE 2 — IMPORT
+   ============================================================ */
+function renderM2(){
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Import ETABS reactions</div>'+
+    '<div class="panel-hint">Upload the joint reaction export from ETABS (.txt or .csv works best — .e2k models rarely carry analysis results, only geometry). Or load sample data to explore the workflow.</div></div></div>'+
+    '<div class="btn-row" style="margin-top:0;"><label class="btn btn-ghost" style="cursor:pointer;">Choose file'+
+    '<input type="file" accept=".csv,.txt,.e2k" style="display:none" onchange="handleImportFile(this.files[0])"></label>'+
+    '<button class="btn btn-ghost" onclick="loadSample()">Load sample data</button>'+
+    (state.points.length?'<button class="btn btn-ghost" onclick="clearImport()">Clear imported data</button>':'')+
+    '</div>'+(state.points.length?renderImportSummary():'')+'</div>';
+}
+function renderImportSummary(){
+  var warn=state.ui.importWarnings||[];
+  return '<div class="panel"><div class="panel-title">Import summary</div>'+
+    '<p style="font-size:13px;color:var(--text-dim);">'+state.points.length+' supports · '+state.reactions.length+' reaction rows · '+state.loadCases.length+' load cases ('+state.loadCases.map(esc).join(', ')+')</p>'+
+    (warn.length?'<p style="font-size:12.5px;color:var(--warn);">'+warn.map(esc).join('<br>')+'</p>':'')+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th>Point</th><th>X</th><th>Y</th><th>Load case</th><th>F3 (kN)</th></tr></thead><tbody>'+
+    state.reactions.slice(0,8).map(function(r){ var p=byId(r.pointId); return '<tr><td>'+esc(r.pointId)+'</td><td>'+(p?fmt(p.x,1):'—')+'</td><td>'+(p?fmt(p.y,1):'—')+'</td><td>'+esc(r.loadCase)+'</td><td>'+fmt(r.fz,1)+'</td></tr>'; }).join('')+
+    '</tbody></table></div><div class="btn-row"><button class="btn" onclick="setModule(3)">Continue to element detection</button></div></div>';
+}
+function handleImportFile(file){
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var res=parseReactionText(String(e.target.result));
+    if(res.errors.length){ toast(res.errors[0]); return; }
+    state.points=res.points; state.reactions=res.reactions; state.loadCases=res.loadCases;
+    state.ui.importWarnings=res.warnings; state.groups=[]; state.zones=[]; state.designs={};
+    saveState(); render();
+    toast('Imported '+res.points.length+' supports.');
+  };
+  reader.onerror=function(){ toast('Could not read that file.'); };
+  reader.readAsText(file);
+}
+function loadSample(){
+  var s=sampleData();
+  state.points=s.points; state.reactions=s.reactions; state.loadCases=s.loadCases;
+  state.ui.importWarnings=[]; state.groups=[]; state.zones=[]; state.designs={};
+  saveState(); render();
+  toast('Sample data loaded.');
+}
+function clearImport(){
+  state.points=[]; state.reactions=[]; state.loadCases=[]; state.groups=[]; state.zones=[]; state.designs={};
+  saveState(); render();
+}
 
-function init(){
-  renderAll();
-  document.addEventListener('click', function(e){
-    var el = e.target.closest('[data-action]');
-    if(el && !el.disabled) handleAction(el.dataset.action, el);
+/* ============================================================
+   MODULE 3 — ELEMENT DETECTION
+   ============================================================ */
+function renderM3(){
+  if(!state.points.length) return emptyState('No supports yet','Import ETABS reactions first.',2,'Go to import');
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Element detection</div>'+
+    '<div class="panel-hint">Type is guessed from the point label. Correct it here — column dimensions feed the punching-shear check later.</div></div></div>'+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>X (m)</th><th>Y (m)</th><th>Type</th><th>Col A (mm)</th><th>Col B (mm)</th></tr></thead><tbody>'+
+    state.points.map(function(p){
+      return '<tr><td>'+esc(p.id)+'</td>'+
+        '<td><input type="number" step="0.1" value="'+p.x+'" oninput="updatePointField(\''+p.id+'\',\'x\',parseFloat(this.value))" style="width:70px;"></td>'+
+        '<td><input type="number" step="0.1" value="'+p.y+'" oninput="updatePointField(\''+p.id+'\',\'y\',parseFloat(this.value))" style="width:70px;"></td>'+
+        '<td><select onchange="updatePoint(\''+p.id+'\',\'type\',this.value)">'+['Column','Wall pier','Core wall'].map(function(t){return '<option '+(p.type===t?'selected':'')+'>'+t+'</option>';}).join('')+'</select></td>'+
+        '<td><input type="number" value="'+(p.colA||400)+'" oninput="updatePointField(\''+p.id+'\',\'colA\',parseFloat(this.value))" style="width:70px;"></td>'+
+        '<td><input type="number" value="'+(p.colB||400)+'" oninput="updatePointField(\''+p.id+'\',\'colB\',parseFloat(this.value))" style="width:70px;"></td></tr>';
+    }).join('')+
+    '</tbody></table></div><div class="btn-row"><button class="btn" onclick="setModule(4)">Continue to reaction database</button></div></div>';
+}
+function updatePoint(id,key,val){ var p=byId(id); if(!p) return; p[key]=val; saveState(); render(); }
+function updatePointField(id,key,val){ var p=byId(id); if(!p) return; p[key]=val; saveState(); }
+
+/* ============================================================
+   MODULE 4 — REACTION DATABASE
+   ============================================================ */
+function renderM4(){
+  if(!state.reactions.length) return emptyState('No reactions yet','Import ETABS reactions first.',2,'Go to import');
+  var filter=state.ui.reactionFilter||'';
+  var rows=state.reactions.filter(function(r){ return !filter || r.loadCase===filter; });
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Reaction database</div>'+
+    '<div class="panel-hint">ETABS sign convention is kept as imported. A negative F3 means net uplift at that support for that case.</div></div>'+
+    '<select onchange="setReactionFilter(this.value)"><option value="">All load cases</option>'+
+    state.loadCases.map(function(lc){return '<option value="'+esc(lc)+'" '+(filter===lc?'selected':'')+'>'+esc(lc)+'</option>';}).join('')+'</select></div>'+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th>Point</th><th>Case</th><th>F1</th><th>F2</th><th>F3</th><th>M1</th><th>M2</th><th>M3</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(function(r){
+      return '<tr><td>'+esc(r.pointId)+'</td><td>'+esc(r.loadCase)+'</td><td>'+fmt(r.fx)+'</td><td>'+fmt(r.fy)+'</td><td>'+fmt(r.fz)+'</td><td>'+fmt(r.mx)+'</td><td>'+fmt(r.my)+'</td><td>'+fmt(r.mz)+'</td>'+
+        '<td>'+(r.fz<0?'<span class="badge badge-fail">uplift</span>':'<span class="badge badge-pass">compression</span>')+'</td></tr>';
+    }).join('')+
+    '</tbody></table></div><div class="btn-row"><button class="btn btn-ghost" onclick="exportReactionsCSV()">Export CSV</button><button class="btn" onclick="setModule(5)">Continue to foundation plan</button></div></div>';
+}
+function setReactionFilter(v){ state.ui.reactionFilter=v; saveState(); render(); }
+function exportReactionsCSV(){
+  var header='Point,LoadCase,F1,F2,F3,M1,M2,M3\n';
+  var body=state.reactions.map(function(r){ return [r.pointId,r.loadCase,r.fx,r.fy,r.fz,r.mx,r.my,r.mz].join(','); }).join('\n');
+  saveFile(((state.project&&state.project.name)||'project').replace(/\s+/g,'_')+'_reactions.csv', header+body);
+}
+
+/* ============================================================
+   MODULE 5 — FOUNDATION PLAN
+   ============================================================ */
+function niceStep(target){
+  var steps=[1,2,5,10,20,50];
+  return steps.reduce(function(a,b){ return Math.abs(b-target)<Math.abs(a-target)?b:a; }, steps[0]);
+}
+function renderPlanGrid(){
+  var v=state.ui.planView, step=niceStep(Math.max(v.w,v.h)/8);
+  var lines='';
+  var x0=Math.floor(v.x/step)*step, x1=v.x+v.w, y0=Math.floor(v.y/step)*step, y1=v.y+v.h;
+  for(var x=x0;x<=x1;x+=step) lines+='<line x1="'+x+'" y1="'+v.y+'" x2="'+x+'" y2="'+(v.y+v.h)+'" stroke="var(--line)" stroke-width="'+(v.w/900)+'"/>';
+  for(var y=y0;y<=y1;y+=step) lines+='<line x1="'+v.x+'" y1="'+y+'" x2="'+(v.x+v.w)+'" y2="'+y+'" stroke="var(--line)" stroke-width="'+(v.w/900)+'"/>';
+  return '<g opacity="0.6">'+lines+'</g>';
+}
+function renderPlanPoint(p){
+  var isWall=p.type!=='Column';
+  var sz=Math.max(state.ui.planView.w,state.ui.planView.h)/60;
+  var selected=state.ui.selectedPoint===p.id;
+  var color=selected?'var(--accent)':(isWall?'var(--rebar)':'var(--accent)');
+  var shape = isWall
+    ? '<rect x="'+(p.x-sz*0.7)+'" y="'+(-p.y-sz*0.35)+'" width="'+(sz*1.4)+'" height="'+(sz*0.7)+'" fill="'+color+'" opacity="0.85"/>'
+    : '<rect x="'+(p.x-sz/2)+'" y="'+(-p.y-sz/2)+'" width="'+sz+'" height="'+sz+'" fill="'+color+'" opacity="0.85"/>';
+  return '<g onclick="selectPoint(\''+p.id+'\')" style="cursor:pointer;">'+shape+
+    '<text x="'+(p.x+sz*0.7)+'" y="'+(-p.y+sz*0.3)+'" font-size="'+(sz*0.9)+'" font-family="IBM Plex Mono, monospace" fill="var(--text)">'+esc(p.id)+'</text></g>';
+}
+function renderPlanSelection(p){
+  var env=envelope(p.id), g=groupOf(p.id);
+  return '<div class="plan-side"><div class="plan-side-panel"><div class="panel-title" style="font-size:13px;">'+esc(p.id)+'</div>'+
+    '<p style="font-size:12.5px;color:var(--text-dim);">'+esc(p.type)+' at ('+fmt(p.x,1)+', '+fmt(p.y,1)+') m'+(g?' · group '+esc(g.name):'')+'</p>'+
+    (env?'<p style="font-family:var(--font-mono);font-size:12.5px;">max F3 '+fmt(env.maxFz.fz,1)+' kN ('+esc(env.maxFz.loadCase)+') · min F3 '+fmt(env.minFz.fz,1)+' kN ('+esc(env.minFz.loadCase)+')</p>':'')+
+    '</div></div>';
+}
+function renderM5(){
+  if(!state.points.length) return emptyState('No supports yet','Import ETABS reactions first.',2,'Go to import');
+  var bb=bbox();
+  var pad=Math.max((bb.maxX-bb.minX),(bb.maxY-bb.minY))*0.15+2;
+  if(!state.ui.planView){
+    state.ui.planView={x:bb.minX-pad, y:-(bb.maxY)-pad, w:(bb.maxX-bb.minX)+2*pad, h:(bb.maxY-bb.minY)+2*pad};
+  }
+  var sel=state.ui.selectedPoint?byId(state.ui.selectedPoint):null;
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Foundation plan</div>'+
+    '<div class="panel-hint">Scroll to zoom, drag to pan, click a support for details.</div></div></div>'+
+    '<div class="plan-toolbar"><label><input type="checkbox" '+(state.ui.planShowCol?'checked':'')+' onchange="togglePlanLayer(\'planShowCol\',this.checked)"> Columns</label>'+
+    '<label><input type="checkbox" '+(state.ui.planShowWall?'checked':'')+' onchange="togglePlanLayer(\'planShowWall\',this.checked)"> Walls</label>'+
+    '<button class="btn btn-ghost btn-sm" onclick="resetPlanView()">Reset view</button></div>'+
+    '<div class="plan-wrap"><svg id="planSvg" class="plan-svg" viewBox="'+state.ui.planView.x+' '+state.ui.planView.y+' '+state.ui.planView.w+' '+state.ui.planView.h+'">'+
+    renderPlanGrid()+
+    state.points.filter(function(p){ return (p.type==='Column'&&state.ui.planShowCol)||(p.type!=='Column'&&state.ui.planShowWall); }).map(renderPlanPoint).join('')+
+    '</svg></div>'+(sel?renderPlanSelection(sel):'')+'</div>';
+}
+function togglePlanLayer(key,val){ state.ui[key]=val; saveState(); render(); }
+function selectPoint(id){ state.ui.selectedPoint=id; saveState(); render(); }
+function resetPlanView(){ state.ui.planView=null; saveState(); render(); }
+var planDrag=null;
+function onPlanWheel(e){
+  e.preventDefault();
+  var v=state.ui.planView, rect=e.currentTarget.getBoundingClientRect();
+  var mx=(e.clientX-rect.left)/rect.width, my=(e.clientY-rect.top)/rect.height;
+  var scale=e.deltaY>0?1.1:0.9;
+  var px=v.x+mx*v.w, py=v.y+my*v.h;
+  v.w*=scale; v.h*=scale;
+  v.x=px-mx*v.w; v.y=py-my*v.h;
+  applyPlanView();
+}
+function onPlanDown(e){ planDrag={x:e.clientX,y:e.clientY,vx:state.ui.planView.x,vy:state.ui.planView.y,rect:e.currentTarget.getBoundingClientRect()}; }
+function onPlanMove(e){
+  if(!planDrag) return;
+  var v=state.ui.planView;
+  v.x=planDrag.vx-(e.clientX-planDrag.x)/planDrag.rect.width*v.w;
+  v.y=planDrag.vy-(e.clientY-planDrag.y)/planDrag.rect.height*v.h;
+  applyPlanView();
+}
+function onPlanUp(){ if(planDrag){ planDrag=null; saveState(); } }
+function applyPlanView(){
+  var svg=document.getElementById('planSvg'); if(!svg) return;
+  var v=state.ui.planView;
+  svg.setAttribute('viewBox', v.x+' '+v.y+' '+v.w+' '+v.h);
+}
+function wirePlan(){
+  var svg=document.getElementById('planSvg'); if(!svg) return;
+  svg.addEventListener('wheel', onPlanWheel, {passive:false});
+  svg.addEventListener('pointerdown', onPlanDown);
+}
+
+/* ============================================================
+   MODULE 6 — CONDITION DETECTION
+   ============================================================ */
+function renderM6(){
+  if(!state.points.length) return emptyState('No supports yet','Import ETABS reactions first.',2,'Go to import');
+  var cond=computeConditions();
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Condition detection</div>'+
+    '<div class="panel-hint">Position is based on distance to the building\'s bounding edge; closely spaced uses a 2.2 m plan trigger.</div></div></div>'+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>Position</th><th>Closely spaced</th><th>Uplift</th></tr></thead><tbody>'+
+    state.points.map(function(p){
+      var c=cond[p.id];
+      return '<tr><td>'+esc(p.id)+'</td><td>'+esc(p.type)+'</td><td><span class="badge badge-dim">'+c.position+'</span></td>'+
+        '<td>'+(c.neighbors.length?'<span class="badge badge-warn">'+c.neighbors.map(esc).join(', ')+'</span>':'—')+'</td>'+
+        '<td>'+(c.uplift?'<span class="badge badge-fail">yes</span>':'—')+'</td></tr>';
+    }).join('')+
+    '</tbody></table></div><div class="btn-row"><button class="btn" onclick="setModule(7)">Continue to foundation type</button></div></div>';
+}
+
+/* ============================================================
+   MODULE 7 — FOUNDATION TYPE
+   ============================================================ */
+function renderM7(){
+  if(!state.points.length) return emptyState('No supports yet','Import ETABS reactions first.',2,'Go to import');
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Foundation type</div>'+
+    '<div class="panel-hint">A first read on what each support probably needs, based on the conditions just detected. Auto grouping turns this into real footing groups next — you can still change the type per group there.</div></div></div>'+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>Suggested foundation</th></tr></thead><tbody>'+
+    state.points.map(function(p){ return '<tr><td>'+esc(p.id)+'</td><td>'+esc(p.type)+'</td><td>'+esc(suggestType(p.id))+'</td></tr>'; }).join('')+
+    '</tbody></table></div><div class="btn-row"><button class="btn" onclick="setModule(8)">Continue to auto grouping</button></div></div>';
+}
+
+/* ============================================================
+   MODULES 8 & 9 — GROUPING
+   ============================================================ */
+function renderGroupList(){
+  return '<div class="table-wrap" style="margin-top:16px;"><table class="data-table"><thead><tr><th>Group</th><th>Type</th><th>Members</th><th>Source</th><th></th></tr></thead><tbody>'+
+    state.groups.map(function(g){
+      return '<tr><td>'+esc(g.name)+'</td>'+
+        '<td><select onchange="updateGroup(\''+g.id+'\',\'type\',this.value)">'+['Isolated','Combined','Strap','Strip','Combined wall footing','Core raft','Custom'].map(function(t){return '<option '+(g.type===t?'selected':'')+'>'+t+'</option>';}).join('')+'</select></td>'+
+        '<td>'+g.memberIds.map(esc).join(', ')+'</td><td>'+(g.auto?'auto':'manual')+'</td>'+
+        '<td><button class="btn btn-ghost btn-sm" onclick="renameGroup(\''+g.id+'\')">Rename</button></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+function updateGroup(id,key,val){ var g=state.groups.find(function(x){return x.id===id;}); if(g){ g[key]=val; saveState(); render(); } }
+function renameGroup(id){
+  var g=state.groups.find(function(x){return x.id===id;}); if(!g) return;
+  var name=prompt('Group name', g.name);
+  if(name){ g.name=name; saveState(); render(); }
+}
+function runAutoGroup(){ autoGroup(); render(); toast('Auto grouping complete — '+state.groups.length+' groups.'); }
+function renderM8(){
+  if(!state.points.length) return emptyState('No supports yet','Import ETABS reactions first.',2,'Go to import');
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Auto grouping</div>'+
+    '<div class="panel-hint">Groups nearby columns into combined footings and clusters wall piers into one core group. Manually created groups (module 9) are left alone.</div></div></div>'+
+    '<div class="btn-row" style="margin-top:0;"><button class="btn" onclick="runAutoGroup()">Run auto grouping</button></div>'+
+    (state.groups.length?renderGroupList():'')+
+    (state.groups.length?'<div class="btn-row"><button class="btn" onclick="setModule(9)">Continue to manual grouping</button></div>':'')+
+    '</div>';
+}
+function toggleManualSel(id,val){
+  state.ui.manualSelection=state.ui.manualSelection||[];
+  if(val) state.ui.manualSelection.push(id);
+  else state.ui.manualSelection=state.ui.manualSelection.filter(function(x){return x!==id;});
+  saveState(); render();
+}
+function createManualGroup(){
+  var sel=state.ui.manualSelection||[];
+  if(sel.length<1){ toast('Tick at least one support.'); return; }
+  state.groups.forEach(function(g){ g.memberIds=g.memberIds.filter(function(id){return sel.indexOf(id)<0;}); });
+  state.groups=state.groups.filter(function(g){return g.memberIds.length>0;});
+  state.groups.push({id:uid('grp'), name:(sel.length>1?'CF-':'F-')+sel.join('+'), type: sel.length>1?'Combined':'Isolated', memberIds:sel.slice(), auto:false});
+  state.ui.manualSelection=[];
+  saveState(); render();
+  toast('Group created.');
+}
+function ungroupSelected(){
+  var sel=state.ui.manualSelection||[];
+  state.groups.forEach(function(g){ g.memberIds=g.memberIds.filter(function(id){return sel.indexOf(id)<0;}); });
+  state.groups=state.groups.filter(function(g){return g.memberIds.length>0;});
+  state.ui.manualSelection=[];
+  saveState(); render();
+}
+function renderM9(){
+  if(!state.points.length) return emptyState('No supports yet','Import ETABS reactions first.',2,'Go to import');
+  var checked=state.ui.manualSelection||[];
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Manual grouping</div>'+
+    '<div class="panel-hint">Tick two or more supports and create a group, or ungroup an existing one.</div></div></div>'+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th></th><th>ID</th><th>Type</th><th>Current group</th></tr></thead><tbody>'+
+    state.points.map(function(p){
+      var g=groupOf(p.id);
+      return '<tr><td><input type="checkbox" '+(checked.indexOf(p.id)>=0?'checked':'')+' onchange="toggleManualSel(\''+p.id+'\',this.checked)"></td>'+
+        '<td>'+esc(p.id)+'</td><td>'+esc(p.type)+'</td><td>'+(g?esc(g.name):'—')+'</td></tr>';
+    }).join('')+'</tbody></table></div>'+
+    '<div class="btn-row"><button class="btn" onclick="createManualGroup()">Create group from ticked</button>'+
+    '<button class="btn btn-ghost" onclick="ungroupSelected()">Ungroup ticked</button></div>'+
+    (state.groups.length?renderGroupList():'')+
+    '<div class="btn-row"><button class="btn" onclick="setModule(10)">Continue to foundation zones</button></div></div>';
+}
+
+/* ============================================================
+   MODULE 10 — FOUNDATION ZONES
+   ============================================================ */
+function renderZoneCard(z){
+  return '<div class="zone-card"><div class="zone-head"><div><strong>'+esc(z.name)+'</strong> <span class="zone-type">'+esc(z.type)+'</span></div>'+
+    '<button class="btn btn-ghost btn-sm" onclick="removeZone(\''+z.id+'\')">Remove</button></div>'+
+    '<p style="font-size:12.5px;color:var(--text-dim);margin:8px 0 0;">Groups: '+z.groupIds.map(function(id){ var g=state.groups.find(function(x){return x.id===id;}); return g?esc(g.name):id; }).join(', ')+'</p>'+
+    '<div class="field-grid" style="margin-top:10px;"><div class="field"><label>Thickness (mm)</label><input type="number" value="'+(z.thickness||500)+'" oninput="updateZoneField(\''+z.id+'\',\'thickness\',parseFloat(this.value))"></div>'+
+    '<div class="field"><label>Notes</label><input type="text" value="'+esc(z.notes||'')+'" oninput="updateZoneField(\''+z.id+'\',\'notes\',this.value)"></div></div></div>';
+}
+function toggleZoneSel(id,val){
+  state.ui.zoneSelection=state.ui.zoneSelection||[];
+  if(val) state.ui.zoneSelection.push(id); else state.ui.zoneSelection=state.ui.zoneSelection.filter(function(x){return x!==id;});
+  saveState(); render();
+}
+function createZone(){
+  var sel=state.ui.zoneSelection||[];
+  if(!sel.length){ toast('Tick at least one group.'); return; }
+  var type=document.getElementById('zoneTypeSel').value;
+  state.zones.push({id:uid('zone'), name:'Zone-'+String(state.zones.length+1).padStart(2,'0'), type:type, groupIds:sel.slice(), thickness:500, notes:''});
+  state.ui.zoneSelection=[];
+  saveState(); render();
+}
+function updateZone(id,key,val){ var z=state.zones.find(function(x){return x.id===id;}); if(z){ z[key]=val; saveState(); render(); } }
+function updateZoneField(id,key,val){ var z=state.zones.find(function(x){return x.id===id;}); if(z){ z[key]=val; saveState(); } }
+function removeZone(id){ state.zones=state.zones.filter(function(z){return z.id!==id;}); saveState(); render(); }
+function renderM10(){
+  if(!state.groups.length) return emptyState('No groups yet','Run auto grouping or create manual groups first.',8,'Go to grouping');
+  var zoned={}; state.zones.forEach(function(z){ z.groupIds.forEach(function(id){ zoned[id]=true; }); });
+  var available=state.groups.filter(function(g){ return !zoned[g.id]; });
+  var sel=state.ui.zoneSelection||[];
+  var html='<div class="panel"><div class="panel-head"><div><div class="panel-title">Foundation zone manager</div>'+
+    '<div class="panel-hint">Bundle one or more groups into a zone once they\'ll share one raft, strip or core slab.</div></div></div>';
+  if(available.length){
+    html+='<div class="table-wrap"><table class="data-table"><thead><tr><th></th><th>Group</th><th>Type</th></tr></thead><tbody>'+
+      available.map(function(g){ return '<tr><td><input type="checkbox" '+(sel.indexOf(g.id)>=0?'checked':'')+' onchange="toggleZoneSel(\''+g.id+'\',this.checked)"></td><td>'+esc(g.name)+'</td><td>'+esc(g.type)+'</td></tr>'; }).join('')+
+      '</tbody></table></div>'+
+      '<div class="field-grid" style="margin-top:12px;max-width:340px;"><div class="field"><label>Zone type</label><select id="zoneTypeSel">'+['Raft','Strip','Isolated','Core raft'].map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></div></div>'+
+      '<div class="btn-row"><button class="btn" onclick="createZone()">Create zone from ticked</button></div>';
+  } else {
+    html+='<p style="color:var(--text-dim);font-size:13px;">Every group is already in a zone.</p>';
+  }
+  html+=state.zones.map(renderZoneCard).join('');
+  html+='<div class="btn-row"><button class="btn" onclick="setModule(11)">Continue to auto sizing</button></div></div>';
+  return html;
+}
+
+/* ============================================================
+   MODULE 11 — AUTO SIZING
+   ============================================================ */
+function runSizing(){
+  state.groups.forEach(function(g){
+    var sizing=sizeFooting(g);
+    if(sizing) state.designs[g.id]={ sizing:sizing };
   });
-  document.addEventListener('change', function(e){
-    var bindEl = e.target.closest('[data-bind]');
-    if(bindEl) handleBind(bindEl);
-    var actionEl = e.target.closest('[data-action]');
-    if(actionEl && actionEl!==bindEl && (actionEl.tagName==='SELECT' || actionEl.type==='checkbox')) handleAction(actionEl.dataset.action, actionEl);
-  });
-  document.addEventListener('input', function(e){
-    var bindEl = e.target.closest('[data-bind]');
-    if(bindEl && bindEl.tagName==='INPUT' && (bindEl.type==='text'||bindEl.type==='number')) handleBind(bindEl);
-  });
-  document.addEventListener('keydown', function(e){
-    if(e.key==='Enter' && e.target && e.target.id==='locateInput'){
-      e.preventDefault();
-      handleAction('plan-locate', document.querySelector('[data-action="plan-locate"]'));
+  saveState(); render();
+  toast('Sizing complete.');
+}
+function updateDesignField(gid,key,val){
+  if(state.designs[gid]){ state.designs[gid].sizing[key]=val; saveState(); render(); }
+}
+function updateDesignFieldLive(gid,key,val){
+  if(state.designs[gid]){ state.designs[gid].sizing[key]=val; saveState(); }
+}
+function renderSizingResults(){
+  return state.groups.filter(function(g){ return state.designs[g.id]; }).map(function(g){
+    var d=state.designs[g.id].sizing;
+    var bLines=d.iterations.slice(-4);
+    var uLines=d.upliftIterations?d.upliftIterations.slice(-4):null;
+    var overallPass = d.pass && (d.upliftIterations?d.upliftPass:true);
+    var html='<div class="zone-card"><div class="zone-head"><div><strong>'+esc(g.name)+'</strong> <span class="zone-type">'+esc(g.type)+'</span></div>'+
+      '<span class="badge '+(overallPass?'badge-pass':'badge-fail')+'">'+(overallPass?'sized':'not converged')+'</span></div>'+
+      '<p style="font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);margin-top:8px;">P '+fmt(d.P,0)+' kN under '+esc(d.governingCase)+' · SBC '+fmt(state.project.sbc,0)+' kN/m²</p>'+
+      '<div class="log-console">'+bLines.map(function(it){ return '<div class="log-line '+(it.pass?'pass':'fail')+'">'+fmt(it.L,1)+' × '+fmt(it.B,1)+' m → qmax '+fmt(it.qmax,1)+' → '+(it.pass?'PASS':'FAIL')+'</div>'; }).join('')+'</div>';
+    if(uLines){
+      html+='<p style="font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);margin-top:10px;">Net uplift '+fmt(d.upliftForce,1)+' kN under '+esc(d.upliftCase)+' — checking self-weight, FOS 1.5</p>'+
+        '<div class="log-console">'+uLines.map(function(it){ return '<div class="log-line '+(it.pass?'pass':'fail')+'">'+fmt(it.L,1)+'×'+fmt(it.B,1)+'×'+fmt(it.D,2)+' m → weight '+fmt(it.value,0)+' / needed '+fmt(it.target,0)+' kN → '+(it.pass?'PASS':'FAIL')+'</div>'; }).join('')+'</div>';
+      if(d.note) html+='<p style="font-size:12.5px;color:var(--fail);margin-top:8px;">'+esc(d.note)+'</p>';
     }
-  });
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
-  initDownloads();
+    html+='<p style="font-family:var(--font-mono);font-size:13px;margin-top:8px;">Final: '+fmt(d.L,2)+' × '+fmt(d.B,2)+' × '+fmt(d.D,2)+' m · qmax '+fmt(d.qmax,1)+' kN/m²</p>'+
+      '<div class="field" style="max-width:220px;margin-top:8px;"><label>Trial thickness override (m)</label><input type="number" step="0.05" value="'+fmt(d.D,2)+'" oninput="updateDesignFieldLive(\''+g.id+'\',\'D\',parseFloat(this.value))"></div></div>';
+    return html;
+  }).join('');
 }
-init();
+function renderM11(){
+  if(!state.groups.length) return emptyState('No groups yet','Run auto grouping first.',8,'Go to grouping');
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Auto sizing</div>'+
+    '<div class="panel-hint">Iterates plan size until the bearing check passes, then separately checks self-weight against any net-uplift case with a 1.5 factor of safety.</div></div></div>'+
+    '<div class="btn-row" style="margin-top:0;"><button class="btn" onclick="runSizing()">Size all groups</button></div>'+
+    (Object.keys(state.designs).length?renderSizingResults():'')+
+    (Object.keys(state.designs).length?'<div class="btn-row"><button class="btn" onclick="setModule(12)">Continue to design check</button></div>':'')+
+    '</div>';
+}
 
-})();
+/* ============================================================
+   MODULE 12 — DESIGN CHECK
+   ============================================================ */
+function renderDesignCard(g){
+  var d=state.designs[g.id].sizing;
+  var chk=designCheck(g,d);
+  function row(label,ok,detail){
+    return '<tr><td>'+esc(label)+'</td><td><span class="badge '+(ok?'badge-pass':'badge-fail')+'">'+(ok?'OK':'CHECK')+'</span></td><td style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);">'+detail+'</td></tr>';
+  }
+  var rows='';
+  rows+=row('Bearing pressure', chk.bearing.ok, 'qmax '+fmt(chk.bearing.qmax,1)+' ≤ SBC '+fmt(chk.bearing.sbc,0)+' kN/m²');
+  rows+=row('Eccentricity', chk.eccentricity.ok, 'eX '+fmt(chk.eccentricity.eccX,2)+' ≤ L/6 '+fmt(chk.eccentricity.limX,2)+' m');
+  if(chk.isolated){
+    rows+=row('One-way shear (X)', chk.dirX.applicable?chk.dirX.shearOK:true, chk.dirX.applicable?('Vu '+fmt(chk.dirX.Vu,0)+' ≤ Vc '+fmt(chk.dirX.Vc,0)+' kN'):'section governs at column face');
+    rows+=row('One-way shear (Y)', chk.dirY.applicable?chk.dirY.shearOK:true, chk.dirY.applicable?('Vu '+fmt(chk.dirY.Vu,0)+' ≤ Vc '+fmt(chk.dirY.Vc,0)+' kN'):'section governs at column face');
+    rows+=row('Punching shear', chk.punching.ok, 'Vu '+fmt(chk.punching.Vu,0)+' ≤ Vc '+fmt(chk.punching.Vc,0)+' kN ('+chk.punching.position+')');
+    rows+=row('Flexure (X)', true, 'Ast '+fmt(chk.dirX.Ast,0)+' mm² → '+chk.dirX.bar+'mm @ '+chk.dirX.spacing+'mm c/c');
+    rows+=row('Flexure (Y)', true, 'Ast '+fmt(chk.dirY.Ast,0)+' mm² → '+chk.dirY.bar+'mm @ '+chk.dirY.spacing+'mm c/c');
+    rows+=row('Development length (X)', chk.dirX.devOK, 'Ld '+fmt(chk.dirX.Ld,0)+' mm vs '+fmt(chk.dirX.available,0)+' mm available');
+  } else {
+    rows+='<tr><td colspan="3" style="color:var(--text-dim);font-size:12px;">Shear, flexure and development length for combined footings — phase 2.</td></tr>';
+  }
+  return '<div class="zone-card"><div class="zone-head"><strong>'+esc(g.name)+'</strong><span class="zone-type">'+esc(g.type)+' · '+fmt(d.L,2)+'×'+fmt(d.B,2)+'×'+fmt(chk.D/1000,2)+' m</span></div>'+
+    '<div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+function renderM12(){
+  var sized=state.groups.filter(function(g){ return state.designs[g.id]; });
+  if(!sized.length) return emptyState('Nothing sized yet','Run auto sizing first.',11,'Go to auto sizing');
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Foundation design check</div>'+
+    '<div class="panel-hint">Bearing, eccentricity, one-way shear, punching shear and flexure per '+esc(state.project.code)+'. Combined footings show bearing only here — per-column shear and flexure for those ships with wall/core and raft design in phase 2.</div></div></div>'+
+    sized.map(renderDesignCard).join('')+
+    '<p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Preliminary sizing only — have a licensed structural engineer verify before construction.</p></div>';
+}
+
+/* ============================================================
+   MODULE 25 — SAVE / LOAD
+   ============================================================ */
+function exportProject(){
+  saveFile((((state.project&&state.project.name)||'project').replace(/\s+/g,'_'))+'.json', JSON.stringify(state,null,2));
+}
+function importProject(file){
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var parsed=JSON.parse(String(e.target.result));
+      state=parsed; if(!state.ui) state.ui=defaultState().ui;
+      saveState(); render();
+      toast('Project loaded.');
+    }catch(err){ toast('Could not read that file — is it a project export?'); }
+  };
+  reader.readAsText(file);
+}
+function resetProjectAll(){
+  if(!confirm('Start a new project? This clears the current one from this browser.')) return;
+  state=defaultState(); saveState(); render();
+}
+function renderM25(){
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Save / load project</div>'+
+    '<div class="panel-hint">Auto-saves to this browser as you work. Export a copy to move it between devices or keep a backup.</div></div></div>'+
+    '<div class="btn-row" style="margin-top:0;"><button class="btn" onclick="exportProject()">Export project (.json)</button>'+
+    '<label class="btn btn-ghost" style="cursor:pointer;">Import project (.json)<input type="file" accept=".json" style="display:none" onchange="importProject(this.files[0])"></label>'+
+    '<button class="btn btn-ghost" onclick="resetProjectAll()">Start a new project</button></div>'+
+    '<p style="font-size:12px;color:var(--text-dim);margin-top:14px;">Local save last updated: '+(state.ui.lastSaved?new Date(state.ui.lastSaved).toLocaleString():'not yet')+'</p></div>';
+}
+
+/* ============================================================
+   DOWNLOADS (published-page runtime capability, with a manual
+   copy/paste fallback so an export never just silently fails)
+   ============================================================ */
+function saveFile(filename, content){
+  if(!window.claude || typeof window.claude.use!=='function'){
+    showManualExport(filename, content, 'One-tap saving needs this page open on claude.ai.');
+    return;
+  }
+  toast('Preparing '+filename+'…');
+  Promise.resolve(window.claude.use('downloads')).then(function(d){
+    if(!d){ showManualExport(filename, content, "Downloads aren't available in this view."); return null; }
+    return d.save({filename:filename, data:content});
+  }).then(function(res){
+    if(res) toast(res.status==='saved' ? 'Saved '+filename+'.' : 'Sent to your chosen destination.');
+  }).catch(function(err){
+    var code=err && err.code;
+    if(code==='declined'){ toast('Not saved.'); return; }
+    showManualExport(filename, content, 'Could not save automatically'+(code?(' — '+code):'')+'.');
+  });
+}
+function showManualExport(filename, content, reason){
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(10,14,18,0.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML='<div style="background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px;max-width:560px;width:100%;max-height:82vh;display:flex;flex-direction:column;">'+
+    '<div style="font-weight:600;margin-bottom:4px;">'+esc(filename)+'</div>'+
+    '<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:10px;">'+esc(reason)+' Select all in the box below and copy — or tap "Copy to clipboard".</div>'+
+    '<textarea readonly style="flex:1;min-height:220px;font-family:var(--font-mono);font-size:11.5px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:4px;color:var(--text);resize:vertical;">'+esc(content)+'</textarea>'+
+    '<div class="btn-row"><button class="btn" id="manualCopyBtn">Copy to clipboard</button><button class="btn btn-ghost" id="manualCloseBtn">Close</button></div></div>';
+  document.body.appendChild(overlay);
+  var ta=overlay.querySelector('textarea');
+  overlay.querySelector('#manualCopyBtn').onclick=function(){
+    ta.focus(); ta.select();
+    var done=false;
+    try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(content); done=true; } }catch(e){}
+    if(!done){ try{ done=document.execCommand('copy'); }catch(e){} }
+    toast(done?'Copied to clipboard.':'Could not auto-copy — text is selected, use your keyboard/menu to copy.');
+  };
+  overlay.querySelector('#manualCloseBtn').onclick=function(){ overlay.remove(); };
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('pointermove', onPlanMove);
+window.addEventListener('pointerup', onPlanUp);
+render();
 </script>
 </body>
 </html>
