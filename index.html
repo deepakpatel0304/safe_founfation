@@ -350,6 +350,72 @@ function parseReactionText(text){
   if(pts.length===0) errors.push('No support points were parsed from this file.');
   return {points:pts, reactions:reactions, loadCases:casesSeen, warnings:warnings, errors:errors};
 }
+
+/* ---- CSI block / key=value format (.e2k, .f2k) ----
+   SAFE's .f2k and ETABS's .e2k are the same CSI text-interchange style:
+   "$ SECTION NAME" headers followed by lines of Key=Value pairs, not a
+   flat delimited table. A model-only export has no force data at all —
+   this only finds something when the export's tables include joint/
+   support reactions (Point/Joint id + an F1..F3/FX..FZ or M1..M3/MX..MZ
+   key on the same line). We key off the fields present, not a specific
+   section-header string, since that varies by CSI product/version. */
+function looksLikeKeyValueFormat(text){
+  var sample=text.split(/\r?\n/).slice(0,80).join('\n');
+  var matches=sample.match(/\b\w+=\S+/g);
+  return !!matches && matches.length>5;
+}
+function parseKeyValueLine(line){
+  var out={}, re=/(\w+)=("([^"]*)"|(\S+))/g, m;
+  while((m=re.exec(line))){ out[m[1].toLowerCase()] = m[3]!==undefined?m[3]:m[4]; }
+  return out;
+}
+function parseKeyValueBlockText(text){
+  var warnings=[], errors=[];
+  var lines=text.split(/\r?\n/);
+  var coordMap={}, reactions=[], casesSeen=[], seenKey={};
+  var ID_KEYS=['point','joint','uniquename','label'];
+  var FORCE_KEYS=['f1','f2','f3','fx','fy','fz','m1','m2','m3','mx','my','mz'];
+  function num(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
+  lines.forEach(function(line){
+    var t=line.trim();
+    if(!t || t.charAt(0)==='$' || t.indexOf('=')<0) return;
+    var kv=parseKeyValueLine(line);
+    var idKey=null;
+    for(var i=0;i<ID_KEYS.length;i++){ if(kv[ID_KEYS[i]]!==undefined){ idKey=ID_KEYS[i]; break; } }
+    if(!idKey) return;
+    var pid=kv[idKey];
+    var hasForce=FORCE_KEYS.some(function(k){ return kv[k]!==undefined; });
+    var hasCoord = kv.globalx!==undefined || kv.x!==undefined;
+    if(hasCoord && !coordMap[pid]){
+      coordMap[pid]={ x:num(kv.globalx!==undefined?kv.globalx:kv.x), y:num(kv.globaly!==undefined?kv.globaly:kv.y) };
+    }
+    if(hasForce){
+      var lc=kv.outputcase||kv.loadcase||kv.case||kv.combo||'Case1';
+      var fx=num(kv.fx!==undefined?kv.fx:kv.f1), fy=num(kv.fy!==undefined?kv.fy:kv.f2), fz=num(kv.fz!==undefined?kv.fz:kv.f3);
+      var mx=num(kv.mx!==undefined?kv.mx:kv.m1), my=num(kv.my!==undefined?kv.my:kv.m2), mz=num(kv.mz!==undefined?kv.mz:kv.m3);
+      var key=pid+'|'+lc;
+      if(seenKey[key]) warnings.push('Duplicate row for '+pid+' under '+lc+' — kept the last one.');
+      seenKey[key]=true;
+      reactions.push({pointId:pid, loadCase:lc, fx:fx,fy:fy,fz:fz,mx:mx,my:my,mz:mz});
+      if(casesSeen.indexOf(lc)<0) casesSeen.push(lc);
+    }
+  });
+  var idsWithReactions={}; reactions.forEach(function(r){ idsWithReactions[r.pointId]=true; });
+  var pts=Object.keys(idsWithReactions).map(function(pid){
+    var c=coordMap[pid];
+    return { id:pid, x:c?c.x:null, y:c?c.y:null, type:/^w|wall|core/i.test(pid)?'Wall pier':'Column', colA:400, colB:400, source:'import' };
+  });
+  if(pts.some(function(p){ return p.x==null; })){
+    warnings.push('No matching coordinate lines found for these points — arranged on a schematic grid. Edit X/Y in Element detection.');
+    var n=pts.length, gcols=Math.ceil(Math.sqrt(n));
+    pts.forEach(function(p,idx){ if(p.x==null){ p.x=(idx%gcols)*5; p.y=Math.floor(idx/gcols)*5; } });
+  }
+  if(reactions.length===0) errors.push("This looks like a CSI model file (.e2k/.f2k) but no joint/support reaction values (F1-F3, M1-M3) were found in it — those files usually hold geometry only. Re-export with the analysis-results tables included, or use the reaction .txt/.csv/.xlsx export instead.");
+  return {points:pts, reactions:reactions, loadCases:casesSeen, warnings:warnings, errors:errors};
+}
+function parseImportedFile(text){
+  return looksLikeKeyValueFormat(text) ? parseKeyValueBlockText(text) : parseReactionText(text);
+}
 function sampleData(){
   var cols=[
     ['C1',0,0],['C11',1.8,0],['C2',6,0],['C3',12,0],['C4',18,0],
@@ -723,9 +789,9 @@ function confirmProject(){
    ============================================================ */
 function renderM2(){
   return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Import ETABS reactions</div>'+
-    '<div class="panel-hint">Upload the joint reaction export from ETABS (.txt or .csv works best — .e2k models rarely carry analysis results, only geometry). Or load sample data to explore the workflow.</div></div></div>'+
+    '<div class="panel-hint">Upload the joint reaction export from ETABS or SAFE — .txt/.csv reaction tables work best; .e2k/.f2k model files are read too if their export included the reactions tables (geometry-only exports won\'t have force data). Or load sample data to explore the workflow.</div></div></div>'+
     '<div class="btn-row" style="margin-top:0;"><label class="btn btn-ghost" style="cursor:pointer;">Choose file'+
-    '<input type="file" accept=".csv,.txt,.e2k" style="display:none" onchange="handleImportFile(this.files[0])"></label>'+
+    '<input type="file" accept=".csv,.txt,.e2k,.f2k" style="display:none" onchange="handleImportFile(this.files[0])"></label>'+
     '<button class="btn btn-ghost" onclick="loadSample()">Load sample data</button>'+
     (state.points.length?'<button class="btn btn-ghost" onclick="clearImport()">Clear imported data</button>':'')+
     '</div>'+(state.points.length?renderImportSummary():'')+'</div>';
@@ -743,7 +809,7 @@ function handleImportFile(file){
   if(!file) return;
   var reader=new FileReader();
   reader.onload=function(e){
-    var res=parseReactionText(String(e.target.result));
+    var res=parseImportedFile(String(e.target.result));
     if(res.errors.length){ toast(res.errors[0]); return; }
     state.points=res.points; state.reactions=res.reactions; state.loadCases=res.loadCases;
     state.ui.importWarnings=res.warnings; state.groups=[]; state.zones=[]; state.designs={};
