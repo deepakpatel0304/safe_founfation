@@ -188,32 +188,35 @@ table.data-table{ width:100%; border-collapse:collapse; font-family:var(--font-m
    MODULE REGISTRY
    ============================================================ */
 var MODULES = [
-  {id:1,  name:'Project setup',        phase:1},
-  {id:2,  name:'Import ETABS reactions', phase:1},
-  {id:3,  name:'Element detection',    phase:1},
-  {id:4,  name:'Reaction database',    phase:1},
-  {id:5,  name:'Foundation plan',      phase:1},
-  {id:6,  name:'Condition detection',  phase:1},
-  {id:7,  name:'Foundation type',      phase:1},
-  {id:8,  name:'Auto grouping',        phase:1},
-  {id:9,  name:'Manual grouping',      phase:1},
-  {id:10, name:'Foundation zones',     phase:1},
-  {id:11, name:'Auto sizing',          phase:1},
-  {id:12, name:'Foundation design check', phase:1},
-  {id:13, name:'Wall / core design',   phase:2, note:'Separate shear-wall, lift-core and combined-wall footing design, with connected walls grouped automatically.'},
-  {id:14, name:'Raft design',          phase:2, note:'Multiple independent rafts, each with its own length, width, thickness, soil support, mesh and design strips.'},
-  {id:15, name:'Strip design',         phase:2, note:'Multiple strips, continuous or segmented, each with its own width, thickness and reinforcement.'},
-  {id:16, name:'Interaction check',    phase:2, note:'Building-wide clash check: footing/strip/raft overlap, clearances, boundary and duplicate-foundation checks.'},
-  {id:17, name:'Optimization',         phase:2, note:'One-click optimize: smaller footings, better grouping, strip vs. isolated, raft zoning — subject to your approval.'},
-  {id:18, name:'2D / 3D view',         phase:2, note:'Full 3D view of columns, walls, footings, strips, rafts and core with dimensions, IDs and reinforcement.'},
-  {id:19, name:'Drawings',             phase:2, note:'Automatic foundation plan, footing/strip/raft sections and reinforcement details.'},
-  {id:20, name:'Design summary',       phase:2, note:'One master report: ID, type, size, thickness, Pmax, punching, shear, steel and status for every element.'},
-  {id:21, name:'SAFE preview',         phase:2, note:'Pre-flight view of everything about to go into SAFE — supports, zones, materials, soil, combos and loads.'},
-  {id:22, name:'E2K generator',        phase:2, note:'Writes the SAFE .e2k file: geometry, supports, walls, foundation objects, materials, sections and loads.'},
-  {id:23, name:'E2K validation',       phase:2, note:'Automatic pre-export check of units, coordinates, supports, combinations, geometry and materials.'},
-  {id:24, name:'Export',               phase:2, note:'SAFE .e2k, project .json, design report PDF, foundation schedule, drawing PDF, reaction CSV.'},
-  {id:25, name:'Save / load project',  phase:1}
+  {id:1,  order:1,  name:'Project setup',        phase:1},
+  {id:2,  order:2,  name:'Import ETABS reactions', phase:1},
+  {id:3,  order:3,  name:'Element detection',    phase:1},
+  {id:4,  order:4,  name:'Reaction database',    phase:1},
+  {id:26, order:5,  name:'Load combination manager', phase:1},
+  {id:5,  order:6,  name:'Foundation plan',      phase:1},
+  {id:6,  order:7,  name:'Condition detection',  phase:1},
+  {id:7,  order:8,  name:'Foundation type',      phase:1},
+  {id:8,  order:9,  name:'Auto grouping',        phase:1},
+  {id:9,  order:10, name:'Manual grouping',      phase:1},
+  {id:10, order:11, name:'Foundation zones',     phase:1},
+  {id:11, order:12, name:'Auto sizing',          phase:1},
+  {id:12, order:13, name:'Foundation design check', phase:1},
+  {id:13, order:14, name:'Wall / core design',   phase:2, note:'Separate shear-wall, lift-core and combined-wall footing design, with connected walls grouped automatically.'},
+  {id:14, order:15, name:'Raft design',          phase:2, note:'Multiple independent rafts, each with its own length, width, thickness, soil support, mesh and design strips.'},
+  {id:15, order:16, name:'Strip design',         phase:2, note:'Multiple strips, continuous or segmented, each with its own width, thickness and reinforcement.'},
+  {id:16, order:17, name:'Interaction check',    phase:2, note:'Building-wide clash check: footing/strip/raft overlap, clearances, boundary and duplicate-foundation checks.'},
+  {id:17, order:18, name:'Optimization',         phase:2, note:'One-click optimize: smaller footings, better grouping, strip vs. isolated, raft zoning — subject to your approval.'},
+  {id:18, order:19, name:'2D / 3D view',         phase:2, note:'Full 3D view of columns, walls, footings, strips, rafts and core with dimensions, IDs and reinforcement.'},
+  {id:19, order:20, name:'Drawings',             phase:2, note:'Automatic foundation plan, footing/strip/raft sections and reinforcement details.'},
+  {id:20, order:21, name:'Design summary',       phase:1},
+  {id:21, order:22, name:'SAFE preview',         phase:1},
+  {id:22, order:23, name:'E2K generator',        phase:2, note:"Blocked on a real sample .e2k/.f2k so the writer matches SAFE's actual table syntax instead of a guess — share one and this unlocks."},
+  {id:23, order:24, name:'E2K validation',       phase:2, note:'Automatic pre-export check of units, coordinates, supports, combinations, geometry and materials.'},
+  {id:24, order:25, name:'Export',               phase:2, note:'SAFE .e2k, project .json, design report PDF, foundation schedule, drawing PDF, reaction CSV.'},
+  {id:25, order:26, name:'Save / load project',  phase:1}
 ];
+var MODULES_BY_ORDER = MODULES.slice().sort(function(a,b){ return a.order-b.order; });
+
 
 var STORAGE_KEY='fdnworks_project_v1';
 var COVER_ASSUMED_BAR=20;
@@ -230,6 +233,10 @@ function defaultState(){
     points:[],
     reactions:[],
     loadCases:[],
+    comboDefs:null,
+    comboNames:null,
+    selectedCombos:null,
+    wallEdges:null,
     groups:[],
     zones:[],
     designs:{},
@@ -248,6 +255,15 @@ function loadState(){
 var state = loadState() || defaultState();
 if(!state.ui) state.ui = defaultState().ui;
 
+var reactionIndex = {};
+function rebuildReactionIndex(){
+  reactionIndex = {};
+  state.reactions.forEach(function(r){ reactionIndex[r.pointId+'|'+r.loadCase]=r; });
+}
+rebuildReactionIndex();
+var conditionsCache=null;
+function invalidateConditionsCache(){ conditionsCache=null; }
+
 function saveState(){
   try{ state.ui.lastSaved=Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   catch(e){ /* storage unavailable — continue without persistence */ }
@@ -258,6 +274,7 @@ function saveState(){
    ============================================================ */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function fmt(n,d){ if(n==null||isNaN(n)) return '—'; d=(d==null?2:d); return Number(n).toFixed(d); }
+function shortLabel(s,max){ s=String(s); max=max||36; return s.length>max ? s.slice(0,max-1)+'…' : s; }
 function uid(prefix){ return prefix+'_'+Math.random().toString(36).slice(2,9); }
 function fckOf(grade){ var m=/M?(\d+)/.exec(grade||''); return m?parseInt(m[1],10):25; }
 function fyOf(grade){ var m=/Fe?(\d+)/.exec(grade||''); return m?parseInt(m[1],10):415; }
@@ -413,7 +430,123 @@ function parseKeyValueBlockText(text){
   if(reactions.length===0) errors.push("This looks like a CSI model file (.e2k/.f2k) but no joint/support reaction values (F1-F3, M1-M3) were found in it — those files usually hold geometry only. Re-export with the analysis-results tables included, or use the reaction .txt/.csv/.xlsx export instead.");
   return {points:pts, reactions:reactions, loadCases:casesSeen, warnings:warnings, errors:errors};
 }
+
+/* ---- Real SAFE/ETABS tokenized format (verified against an actual
+   SAFE 12.x .f2k export) ----
+   Records look like: TABLENAME "id" "id2" KEY value KEY value ...
+   (space-separated tokens, quoted strings for names with spaces, NO
+   "=" signs). Column/wall reactions live under POINTLOAD as raw,
+   UNFACTORED per-pattern point loads (one row per load pattern per
+   point); combinations are defined separately via COMBO/COMBOFACTOR
+   and must be assembled from the pattern rows. Column plan size comes
+   from XDIM/YDIM on a POINTLOAD line; wall points are identified by
+   matching LINE endpoints back to POINT coordinates, with thickness
+   taken from the wall's BEAMPROP (the B field). */
+function tokenizeLine(line){
+  var m=line.match(/"[^"]*"|\S+/g);
+  if(!m) return [];
+  return m.map(function(t){ return t.charAt(0)==='"' ? t.slice(1,-1) : t; });
+}
+function looksLikeSafeTokenFormat(text){
+  return /\bPOINTLOAD\b/.test(text) || /\bCOMBOFACTOR\b/.test(text) || /\bLINSTAT\b/.test(text);
+}
+function parseSafeTokenFormat(text){
+  var warnings=[], errors=[];
+  var lines=text.split(/\r?\n/);
+  var unitScale=1;
+  var pointsRaw={}, linesRaw={}, beamAssign={}, beamProp={};
+  var patternRows=[], xdimByPoint={}, comboFactors={}, comboOrder=[];
+  function num(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
+  lines.forEach(function(raw){
+    var line=raw.trim();
+    if(!line || line.charAt(0)==='$') return;
+    if(/^UNITS\b/i.test(line)){
+      var ut=tokenizeLine(line), lenTok=(ut[2]||'').toLowerCase();
+      unitScale = lenTok==='mm'?0.001 : lenTok==='cm'?0.01 : lenTok==='in'?0.0254 : lenTok==='ft'?0.3048 : 1;
+      return;
+    }
+    var t=tokenizeLine(line);
+    if(!t.length) return;
+    var kind=t[0].toUpperCase(), i;
+    if(kind==='POINT' && t.length>=4){
+      pointsRaw[t[1]]={ x:num(t[2])*unitScale, y:num(t[3])*unitScale };
+    } else if(kind==='LINE' && t.length>=6){
+      linesRaw[t[1]]={ x1:num(t[2])*unitScale, y1:num(t[3])*unitScale, x2:num(t[4])*unitScale, y2:num(t[5])*unitScale };
+    } else if(kind==='BEAM' && t.length>=3){
+      beamAssign[t[1]]=t[2];
+    } else if(kind==='BEAMPROP' && t.length>=2){
+      var pn=t[1]; beamProp[pn]=beamProp[pn]||{};
+      for(i=2;i+1<t.length;i+=2){ beamProp[pn][t[i].toUpperCase()]=t[i+1]; }
+    } else if(kind==='POINTLOAD' && t.length>=3){
+      var pattern=t[1], pid=t[2], kv={};
+      for(i=3;i+1<t.length;i+=2){ kv[t[i].toUpperCase()]=t[i+1]; }
+      patternRows.push({ pointId:pid, loadCase:pattern, fx:num(kv.FX), fy:num(kv.FY), fz:num(kv.FZ), mx:num(kv.MX)/1000, my:num(kv.MY)/1000, mz:num(kv.MZ)/1000 });
+      if(kv.XDIM && kv.YDIM && !xdimByPoint[pid]) xdimByPoint[pid]={ a:num(kv.XDIM), b:num(kv.YDIM) };
+    } else if(kind==='COMBO' && t.length>=2){
+      if(!comboFactors[t[1]]){ comboFactors[t[1]]=[]; comboOrder.push(t[1]); }
+    } else if(kind==='COMBOFACTOR' && t.length>=4){
+      var cn=t[1], fac=parseFloat(t[3]);
+      if(!comboFactors[cn]){ comboFactors[cn]=[]; comboOrder.push(cn); }
+      if(!isNaN(fac)) comboFactors[cn].push({pattern:t[2], factor:fac});
+    }
+  });
+  var coordKey=function(x,y){ return Math.round(x*1000)+','+Math.round(y*1000); };
+  var pointsByCoord={};
+  Object.keys(pointsRaw).forEach(function(pid){ pointsByCoord[coordKey(pointsRaw[pid].x,pointsRaw[pid].y)]=pid; });
+  var wallPointIds={}, wallThicknessByPoint={}, wallEdges=[];
+  Object.keys(linesRaw).forEach(function(lid){
+    var ln=linesRaw[lid], propName=beamAssign[lid];
+    var thicknessMm = (propName && beamProp[propName] && beamProp[propName].B) ? parseFloat(beamProp[propName].B) : null;
+    var endIds=[];
+    [[ln.x1,ln.y1],[ln.x2,ln.y2]].forEach(function(pr){
+      var pid=pointsByCoord[coordKey(pr[0],pr[1])];
+      if(pid){ wallPointIds[pid]=true; if(thicknessMm) wallThicknessByPoint[pid]=thicknessMm; endIds.push(pid); }
+    });
+    if(endIds.length===2 && endIds[0]!==endIds[1]) wallEdges.push([endIds[0],endIds[1]]);
+  });
+  var usedPointIds={};
+  patternRows.forEach(function(r){ usedPointIds[r.pointId]=true; });
+  var pts=Object.keys(usedPointIds).map(function(pid){
+    var raw=pointsRaw[pid], isWall=!!wallPointIds[pid], xd=xdimByPoint[pid];
+    return { id:pid, x:raw?raw.x:null, y:raw?raw.y:null, type:isWall?'Wall pier':'Column',
+      colA: isWall ? (wallThicknessByPoint[pid]||300) : (xd?xd.a:400),
+      colB: isWall ? 1000 : (xd?xd.b:400), source:'import' };
+  });
+  // duplicate/invalid checks only matter for the supports we actually use — the raw
+  // model can (and does) have plenty of unloaded mesh/auxiliary points sharing a
+  // support's coordinates without that being a real problem
+  var seenKeys={}, coordDupes=0, invalidCoordCount=0;
+  pts.forEach(function(p){
+    if(p.x==null) return;
+    if(!isFinite(p.x) || !isFinite(p.y)){ invalidCoordCount++; return; }
+    var k=coordKey(p.x,p.y);
+    if(seenKeys[k]) coordDupes++; else seenKeys[k]=true;
+  });
+  if(coordDupes) warnings.push(coordDupes+' support(s) share exact coordinates with another support with load data — check for duplicate/merged nodes.');
+  if(invalidCoordCount) warnings.push(invalidCoordCount+' support(s) had invalid (non-numeric) coordinates.');
+  var missing=pts.filter(function(p){return p.x==null;}).length;
+  if(missing){
+    warnings.push(missing+' support(s) had no matching POINT COORDINATES entry — arranged on a schematic grid.');
+    var n=pts.length, gcols=Math.ceil(Math.sqrt(n)), gi=0;
+    pts.forEach(function(p){ if(p.x==null){ p.x=(gi%gcols)*5; p.y=Math.floor(gi/gcols)*5; gi++; } });
+  }
+  var availablePatterns={};
+  patternRows.forEach(function(r){ availablePatterns[r.loadCase]=true; });
+  function patternAvailable(name){ return !!availablePatterns[name] || !!availablePatterns[name+'_ABOVE']; }
+  var resolvable=[], unresolvable=[];
+  comboOrder.forEach(function(cn){
+    var facs=comboFactors[cn];
+    if(!facs || !facs.length) return;
+    if(facs.every(function(f){ return patternAvailable(f.pattern); })) resolvable.push(cn); else unresolvable.push(cn);
+  });
+  if(unresolvable.length){
+    warnings.push(unresolvable.length+' of '+comboOrder.length+' load combinations reference patterns with no transferred point-load data (commonly response-spectrum cases like SPEC1/2/3) and were left out — sizing only uses the '+resolvable.length+' combinations it can fully resolve. Re-export those cases as point loads from ETABS if they should govern.');
+  }
+  if(pts.length===0) errors.push('No supports with load data were found in this file.');
+  return { points:pts, reactions:patternRows, loadCases:Object.keys(availablePatterns), comboDefs:comboFactors, comboNames:resolvable, wallEdges:wallEdges, warnings:warnings, errors:errors };
+}
 function parseImportedFile(text){
+  if(looksLikeSafeTokenFormat(text)) return parseSafeTokenFormat(text);
   return looksLikeKeyValueFormat(text) ? parseKeyValueBlockText(text) : parseReactionText(text);
 }
 function sampleData(){
@@ -445,11 +578,23 @@ function sampleData(){
    ============================================================ */
 function reactionsFor(pointId){ return state.reactions.filter(function(r){ return r.pointId===pointId; }); }
 function envelope(pointId){
+  var caseNames = (state.selectedCombos && state.selectedCombos.length) ? state.selectedCombos
+    : (state.comboNames && state.comboNames.length) ? state.comboNames : null;
+  if(caseNames){
+    var fakeGroup={memberIds:[pointId]}, maxFz=null, minFz=null;
+    caseNames.forEach(function(cn){
+      var v=combinedLoad(fakeGroup, cn);
+      if(!v) return;
+      if(!maxFz || v.P>maxFz.fz) maxFz={fz:v.P, loadCase:cn, mx:v.M1, my:v.M2};
+      if(!minFz || v.P<minFz.fz) minFz={fz:v.P, loadCase:cn, mx:v.M1, my:v.M2};
+    });
+    return maxFz ? {maxFz:maxFz, minFz:minFz} : null;
+  }
   var rs=reactionsFor(pointId);
   if(!rs.length) return null;
-  var maxFz=rs[0], minFz=rs[0];
-  rs.forEach(function(r){ if(r.fz>maxFz.fz) maxFz=r; if(r.fz<minFz.fz) minFz=r; });
-  return {maxFz:maxFz, minFz:minFz};
+  var maxFz2=rs[0], minFz2=rs[0];
+  rs.forEach(function(r){ if(r.fz>maxFz2.fz) maxFz2=r; if(r.fz<minFz2.fz) minFz2=r; });
+  return {maxFz:maxFz2, minFz:minFz2};
 }
 function bbox(){
   if(!state.points.length) return {minX:0,maxX:10,minY:0,maxY:10};
@@ -458,6 +603,7 @@ function bbox(){
 }
 function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
 function computeConditions(){
+  if(conditionsCache) return conditionsCache;
   var bb=bbox();
   var marginX=(bb.maxX-bb.minX)*0.12+0.5, marginY=(bb.maxY-bb.minY)*0.12+0.5;
   var closeThreshold=2.2;
@@ -472,6 +618,7 @@ function computeConditions(){
     var uplift = !!(env && env.minFz.fz<0);
     out[p.id]={ position:position, neighbors:neighbors, uplift:uplift, env:env };
   });
+  conditionsCache=out;
   return out;
 }
 function suggestType(pointId){
@@ -490,27 +637,51 @@ function suggestType(pointId){
    GROUPING
    ============================================================ */
 function groupOf(pointId){ return state.groups.find(function(g){ return g.memberIds.indexOf(pointId)>=0; }); }
+function clusterByProximity(list, cond){
+  var parent={}; list.forEach(function(c){ parent[c.id]=c.id; });
+  function find(x){ while(parent[x]!==x){ parent[x]=parent[parent[x]]; x=parent[x]; } return x; }
+  function union(a,b){ a=find(a); b=find(b); if(a!==b) parent[a]=b; }
+  var idSet={}; list.forEach(function(c){ idSet[c.id]=true; });
+  list.forEach(function(c){ (cond[c.id]?cond[c.id].neighbors:[]).forEach(function(n){ if(idSet[n]) union(c.id,n); }); });
+  var clusters={};
+  list.forEach(function(c){ var r=find(c.id); (clusters[r]=clusters[r]||[]).push(c.id); });
+  return Object.keys(clusters).map(function(k){ return clusters[k]; });
+}
+function clusterByConnectivity(list, edges){
+  var parent={}; list.forEach(function(c){ parent[c.id]=c.id; });
+  function find(x){ while(parent[x]!==x){ parent[x]=parent[parent[x]]; x=parent[x]; } return x; }
+  function union(a,b){ a=find(a); b=find(b); if(a!==b) parent[a]=b; }
+  var idSet={}; list.forEach(function(c){ idSet[c.id]=true; });
+  edges.forEach(function(e){ if(idSet[e[0]] && idSet[e[1]]) union(e[0],e[1]); });
+  var clusters={};
+  list.forEach(function(c){ var r=find(c.id); (clusters[r]=clusters[r]||[]).push(c.id); });
+  return Object.keys(clusters).map(function(k){ return clusters[k]; });
+}
 function autoGroup(){
   var cond=computeConditions();
   var manual=state.groups.filter(function(g){ return !g.auto; });
   var claimed={}; manual.forEach(function(g){ g.memberIds.forEach(function(id){ claimed[id]=true; }); });
   var cols=state.points.filter(function(p){ return p.type==='Column' && !claimed[p.id]; });
   var walls=state.points.filter(function(p){ return p.type!=='Column' && !claimed[p.id]; });
-  var parent={}; cols.forEach(function(c){ parent[c.id]=c.id; });
-  function find(x){ while(parent[x]!==x){ parent[x]=parent[parent[x]]; x=parent[x]; } return x; }
-  function union(a,b){ a=find(a); b=find(b); if(a!==b) parent[a]=b; }
-  cols.forEach(function(c){ (cond[c.id]?cond[c.id].neighbors:[]).forEach(function(n){ if(parent[n]!==undefined) union(c.id,n); }); });
-  var clusters={};
-  cols.forEach(function(c){ var r=find(c.id); (clusters[r]=clusters[r]||[]).push(c.id); });
   var groups=[];
-  Object.keys(clusters).forEach(function(k){
-    var ids=clusters[k];
-    groups.push({ id:uid('grp'), name: ids.length>1?('CF-'+ids.join('+')):('F-'+ids[0]),
-      type: ids.length>1?'Combined':'Isolated', memberIds:ids, auto:true });
+  var MAX_COMBINED=3; // a chain longer than this isn't a real "combined footing" — keep members isolated instead of forcing a nonsensical mega-footing
+  clusterByProximity(cols,cond).forEach(function(ids){
+    if(ids.length>MAX_COMBINED){
+      ids.forEach(function(id){ groups.push({ id:uid('grp'), name:'F-'+id, type:'Isolated', memberIds:[id], auto:true }); });
+    } else {
+      groups.push({ id:uid('grp'), name: ids.length>1?('CF-'+ids.join('+')):('F-'+ids[0]),
+        type: ids.length>1?'Combined':'Isolated', memberIds:ids, auto:true });
+    }
   });
-  if(walls.length){
-    groups.push({ id:uid('grp'), name:'Core-'+walls.map(function(w){return w.id;}).join('+'), type:'Combined wall footing', memberIds:walls.map(function(w){return w.id;}), auto:true });
-  }
+  // walls: use actual wall-line connectivity when we have it (a real model import) so
+  // intermediate nodes of one continuous wall always land in the same footing, and two
+  // unrelated walls that merely happen to sit close to each other never get merged.
+  // Falls back to proximity clustering only when there's no connectivity data at all
+  // (e.g. a plain CSV/manual import with no LINE records).
+  var wallClusters = (state.wallEdges && state.wallEdges.length) ? clusterByConnectivity(walls, state.wallEdges) : clusterByProximity(walls,cond);
+  wallClusters.forEach(function(ids){
+    groups.push({ id:uid('grp'), name:'Wall-'+ids.join('+'), type: ids.length>1?'Combined wall footing':'Wall footing', memberIds:ids, auto:true });
+  });
   state.groups = manual.concat(groups);
   saveState();
 }
@@ -520,7 +691,25 @@ function centroidOf(group){
   var y=pts.reduce(function(s,p){return s+p.y;},0)/pts.length;
   return {x:x,y:y};
 }
+function lookupPatternReaction(pointId, patternName){
+  return reactionIndex[pointId+'|'+patternName] || reactionIndex[pointId+'|'+patternName+'_ABOVE'] || null;
+}
 function combinedLoad(group, loadCase){
+  if(state.comboDefs && state.comboDefs[loadCase]){
+    var factors=state.comboDefs[loadCase];
+    var c1=centroidOf(group), P1=0,M11=0,M21=0, any=false;
+    group.memberIds.forEach(function(pid){
+      var pt=byId(pid); if(!pt) return;
+      factors.forEach(function(f){
+        var row=lookupPatternReaction(pid, f.pattern);
+        if(!row) return;
+        any=true;
+        var fz=row.fz*f.factor, mx=row.mx*f.factor, my=row.my*f.factor;
+        P1+=fz; M11+=mx+fz*(pt.y-c1.y); M21+=my+fz*(pt.x-c1.x);
+      });
+    });
+    return any ? {P:P1,M1:M11,M2:M21,cx:c1.x,cy:c1.y} : null;
+  }
   var rows=group.memberIds.map(function(pid){ return {pid:pid, r:reactionsFor(pid).find(function(rr){ return rr.loadCase===loadCase; })}; }).filter(function(x){ return !!x.r; });
   if(!rows.length) return null;
   var c=centroidOf(group);
@@ -534,18 +723,23 @@ function combinedLoad(group, loadCase){
   return {P:P,M1:M1,M2:M2,cx:c.x,cy:c.y};
 }
 function governingCases(group){
-  var combos=state.loadCases.map(function(lc){ return {lc:lc, v:combinedLoad(group,lc)}; }).filter(function(x){ return !!x.v; });
+  var caseNames = (state.selectedCombos && state.selectedCombos.length) ? state.selectedCombos
+    : (state.comboNames && state.comboNames.length) ? state.comboNames : state.loadCases;
+  var combos=caseNames.map(function(lc){ return {lc:lc, v:combinedLoad(group,lc)}; }).filter(function(x){ return !!x.v; });
   if(!combos.length) return null;
-  var bearing=combos[0], uplift=null;
+  var bearing=combos[0], uplift=null, maxM1=combos[0], maxM2=combos[0];
   combos.forEach(function(c){
     if(c.v.P>bearing.v.P) bearing=c;
     if(c.v.P<0 && (!uplift || c.v.P<uplift.v.P)) uplift=c;
+    if(Math.abs(c.v.M1)>Math.abs(maxM1.v.M1)) maxM1=c;
+    if(Math.abs(c.v.M2)>Math.abs(maxM2.v.M2)) maxM2=c;
   });
-  return {bearing:bearing, uplift:uplift};
+  return {bearing:bearing, uplift:uplift, maxM1:maxM1, maxM2:maxM2, all:combos};
 }
 
 /* ============================================================
-   AUTO SIZING
+   AUTO SIZING — rectangular L×B (not forced square), sized from
+   the governing combo's P, M1 and M2 together
    ============================================================ */
 function sizeFooting(group){
   var proj=state.project; if(!proj) return null;
@@ -560,7 +754,17 @@ function sizeFooting(group){
   var minL=Math.max(minSize,spanX+0.6), minB=Math.max(minSize,spanY+0.6);
 
   var P=gov.bearing.v.P, M1=gov.bearing.v.M1, M2=gov.bearing.v.M2;
-  var L=Math.max(minL,Math.ceil(Math.sqrt(Math.max(P,1)/SBC)*10)/10), B=Math.max(minB,L);
+  // aspect ratio hint: M1 is resisted by a larger L, M2 by a larger B (see qmax formula below) —
+  // bias the rectangle toward whichever direction actually needs the reach, capped 0.5-2x so it
+  // stays a sane rectangle rather than a sliver. Square (k=1) whenever moments are small/balanced.
+  var k=1;
+  if(Math.abs(M1)>1e-6 || Math.abs(M2)>1e-6){
+    k=Math.sqrt((Math.abs(M1)+0.01)/(Math.abs(M2)+0.01));
+    k=Math.max(0.5,Math.min(2,k));
+  }
+  var s=Math.max(Math.sqrt(minL*minB), Math.sqrt(Math.max(P,1)/SBC));
+  s=Math.ceil(s*10)/10;
+  var L=Math.max(minL,Math.round(s*Math.sqrt(k)*10)/10), B=Math.max(minB,Math.round(s/Math.sqrt(k)*10)/10);
   var bIter=[], bPass=false, qmax=0, qmin=0;
   for(var i=0;i<60;i++){
     var A=L*B;
@@ -569,11 +773,14 @@ function sizeFooting(group){
     var ok=(qmax<=SBC)&&(allowTension||qmin>=0);
     bIter.push({L:L,B:B,qmax:qmax,qmin:qmin,pass:ok});
     if(ok){ bPass=true; break; }
-    L=Math.round((L+0.1)*10)/10; B=Math.round((B+0.1)*10)/10;
+    s=Math.round((s+0.1)*10)/10;
+    L=Math.max(minL,Math.round(s*Math.sqrt(k)*10)/10); B=Math.max(minB,Math.round(s/Math.sqrt(k)*10)/10);
     if(L>8||B>8) break;
   }
 
-  var result={ L:L,B:B,D:0.5, qmax:qmax,qmin:qmin, governingCase:gov.bearing.lc, P:P,M1:M1,M2:M2, iterations:bIter, pass:bPass };
+  var result={ L:L,B:B,D:0.5, thicknessAuto:true, qmax:qmax,qmin:qmin, governingCase:gov.bearing.lc, P:P,M1:M1,M2:M2,
+    maxM1Case:gov.maxM1.lc, maxM1:gov.maxM1.v.M1, maxM2Case:gov.maxM2.lc, maxM2:gov.maxM2.v.M2,
+    iterations:bIter, pass:bPass };
 
   if(gov.uplift){
     var upP=Math.abs(gov.uplift.v.P);
@@ -601,12 +808,12 @@ function sizeFooting(group){
    FOUNDATION DESIGN CHECK (isolated footings get full shear/flexure;
    combined footings get bearing + eccentricity only in phase 1)
    ============================================================ */
-function designCheck(group, sizing){
+function designCheck(group, sizing, overrideDmm){
   if(!sizing) return null;
   var proj=state.project;
   var fck=fckOf(proj.concreteGrade), fy=fyOf(proj.steelGrade);
   var cover=parseFloat(proj.cover)||50;
-  var D=(sizing.D||0.5)*1000;
+  var D=overrideDmm!=null ? overrideDmm : (sizing.D||0.5)*1000;
   var d=D-cover-COVER_ASSUMED_BAR;
   var L=sizing.L, B=sizing.B;
   var qavg=sizing.P/(L*B);
@@ -671,6 +878,23 @@ function designCheck(group, sizing){
   return result;
 }
 
+var THICKNESS_SEQUENCE=[100,150,175,200,250,300,350,450,500,550,600,650,700,750,800,850,900];
+function runThicknessTrials(group, sizing){
+  if(group.memberIds.length!==1) return null; // combined/wall footings: full shear+flexure design is phase 2, so there's nothing here to trial against yet
+  var trials=[], chosen=null;
+  for(var i=0;i<THICKNESS_SEQUENCE.length;i++){
+    var D=THICKNESS_SEQUENCE[i];
+    var chk=designCheck(group, sizing, D);
+    var punchOk=chk.punching.ok;
+    var shearOk=chk.dirX.shearOK && chk.dirY.shearOK;
+    var devOk=chk.dirX.devOK && chk.dirY.devOK;
+    var pass=punchOk && shearOk && devOk;
+    trials.push({D:D, punchOk:punchOk, shearOk:shearOk, devOk:devOk, pass:pass});
+    if(pass && chosen==null) chosen=D;
+  }
+  return { trials:trials, chosenD: chosen!=null ? chosen : THICKNESS_SEQUENCE[THICKNESS_SEQUENCE.length-1], converged: chosen!=null };
+}
+
 /* ============================================================
    NAV / SHELL
    ============================================================ */
@@ -688,19 +912,23 @@ function moduleHasData(id){
     case 10: return state.zones.length>0;
     case 11: return Object.keys(state.designs).length>0;
     case 12: return Object.keys(state.designs).length>0;
+    case 20: return Object.keys(state.designs).length>0;
+    case 21: return !!state.project;
     case 25: return true;
+    case 26: return !!(state.selectedCombos && state.selectedCombos.length);
     default: return false;
   }
 }
 function renderSidebar(){
   var nav=document.getElementById('nav');
-  document.getElementById('navNote').textContent='12 of 25 modules are live — the rest are mapped out below.';
-  nav.innerHTML = MODULES.map(function(m){
+  var liveCount=MODULES.filter(function(m){return m.phase===1;}).length;
+  document.getElementById('navNote').textContent=liveCount+' of '+MODULES.length+' modules are live — the rest are mapped out below.';
+  nav.innerHTML = MODULES_BY_ORDER.map(function(m){
     var active=state.ui.current===m.id;
     var locked=m.phase===2;
     var done=!locked && moduleHasData(m.id);
     return '<div class="nav-item '+(active?'active':'')+' '+(locked?'locked':'')+'" onclick="setModule('+m.id+')">'+
-      '<span class="nav-num">'+String(m.id).padStart(2,'0')+'</span>'+
+      '<span class="nav-num">'+String(m.order).padStart(2,'0')+'</span>'+
       '<span class="nav-dot '+(done?'done':'')+' '+(active?'current':'')+'"></span>'+
       '<span class="nav-name">'+esc(m.name)+'</span></div>';
   }).join('');
@@ -708,11 +936,12 @@ function renderSidebar(){
 function renderTopbar(){
   var m=MODULES.find(function(x){return x.id===state.ui.current;});
   document.getElementById('topTitle').textContent=m.name;
-  document.getElementById('topModuleLabel').textContent='MODULE '+String(m.id).padStart(2,'0')+' / 25';
+  document.getElementById('topModuleLabel').textContent='MODULE '+String(m.order).padStart(2,'0')+' / '+MODULES.length;
   var chips=[];
   if(state.project && state.project.name) chips.push(esc(state.project.name));
   if(state.points.length) chips.push(state.points.length+' supports');
-  if(state.loadCases.length) chips.push(state.loadCases.length+' load cases');
+  if(state.loadCases.length) chips.push(state.loadCases.length+((state.comboNames&&state.comboNames.length)?' patterns':' load cases'));
+  if(state.comboNames && state.comboNames.length) chips.push((state.selectedCombos?state.selectedCombos.length:state.comboNames.length)+' of '+state.comboNames.length+' combos selected');
   if(state.groups.length) chips.push(state.groups.length+' footing groups');
   document.getElementById('statusChips').innerHTML=chips.map(function(c){return '<span class="chip">'+c+'</span>';}).join('');
 }
@@ -723,7 +952,7 @@ function renderContent(){
   var c=document.getElementById('content');
   var m=MODULES.find(function(x){return x.id===id;});
   if(m.phase===2){ c.innerHTML=renderPhase2(m); return; }
-  var fns={1:renderM1,2:renderM2,3:renderM3,4:renderM4,5:renderM5,6:renderM6,7:renderM7,8:renderM8,9:renderM9,10:renderM10,11:renderM11,12:renderM12,25:renderM25};
+  var fns={1:renderM1,2:renderM2,3:renderM3,4:renderM4,5:renderM5,6:renderM6,7:renderM7,8:renderM8,9:renderM9,10:renderM10,11:renderM11,12:renderM12,20:renderM20,21:renderM21,25:renderM25,26:renderLoadComboManager};
   c.innerHTML = fns[id] ? fns[id]() : '<div class="empty"><h3>Coming soon</h3></div>';
   if(id===5) wirePlan();
 }
@@ -799,7 +1028,7 @@ function renderM2(){
 function renderImportSummary(){
   var warn=state.ui.importWarnings||[];
   return '<div class="panel"><div class="panel-title">Import summary</div>'+
-    '<p style="font-size:13px;color:var(--text-dim);">'+state.points.length+' supports · '+state.reactions.length+' reaction rows · '+state.loadCases.length+' load cases ('+state.loadCases.map(esc).join(', ')+')</p>'+
+    '<p style="font-size:13px;color:var(--text-dim);">'+state.points.length+' supports · '+state.reactions.length+' reaction rows · '+state.loadCases.length+((state.comboNames&&state.comboNames.length)?' patterns':' load cases')+' ('+state.loadCases.map(esc).join(', ')+')'+((state.comboNames&&state.comboNames.length)?' · '+state.comboNames.length+' resolvable combinations':'')+'</p>'+
     (warn.length?'<p style="font-size:12.5px;color:var(--warn);">'+warn.map(esc).join('<br>')+'</p>':'')+
     '<div class="table-wrap"><table class="data-table"><thead><tr><th>Point</th><th>X</th><th>Y</th><th>Load case</th><th>F3 (kN)</th></tr></thead><tbody>'+
     state.reactions.slice(0,8).map(function(r){ var p=byId(r.pointId); return '<tr><td>'+esc(r.pointId)+'</td><td>'+(p?fmt(p.x,1):'—')+'</td><td>'+(p?fmt(p.y,1):'—')+'</td><td>'+esc(r.loadCase)+'</td><td>'+fmt(r.fz,1)+'</td></tr>'; }).join('')+
@@ -812,7 +1041,10 @@ function handleImportFile(file){
     var res=parseImportedFile(String(e.target.result));
     if(res.errors.length){ toast(res.errors[0]); return; }
     state.points=res.points; state.reactions=res.reactions; state.loadCases=res.loadCases;
+    state.comboDefs=res.comboDefs||null; state.comboNames=res.comboNames||null; state.wallEdges=res.wallEdges||null;
+    state.selectedCombos = res.comboNames ? res.comboNames.slice() : null;
     state.ui.importWarnings=res.warnings; state.groups=[]; state.zones=[]; state.designs={};
+    rebuildReactionIndex(); invalidateConditionsCache();
     saveState(); render();
     toast('Imported '+res.points.length+' supports.');
   };
@@ -822,12 +1054,15 @@ function handleImportFile(file){
 function loadSample(){
   var s=sampleData();
   state.points=s.points; state.reactions=s.reactions; state.loadCases=s.loadCases;
+  state.comboDefs=null; state.comboNames=null; state.wallEdges=null; state.selectedCombos=null;
   state.ui.importWarnings=[]; state.groups=[]; state.zones=[]; state.designs={};
+  rebuildReactionIndex(); invalidateConditionsCache();
   saveState(); render();
   toast('Sample data loaded.');
 }
 function clearImport(){
-  state.points=[]; state.reactions=[]; state.loadCases=[]; state.groups=[]; state.zones=[]; state.designs={};
+  state.points=[]; state.reactions=[]; state.loadCases=[]; state.comboDefs=null; state.comboNames=null; state.wallEdges=null; state.selectedCombos=null; state.groups=[]; state.zones=[]; state.designs={};
+  rebuildReactionIndex(); invalidateConditionsCache();
   saveState(); render();
 }
 
@@ -849,8 +1084,8 @@ function renderM3(){
     }).join('')+
     '</tbody></table></div><div class="btn-row"><button class="btn" onclick="setModule(4)">Continue to reaction database</button></div></div>';
 }
-function updatePoint(id,key,val){ var p=byId(id); if(!p) return; p[key]=val; saveState(); render(); }
-function updatePointField(id,key,val){ var p=byId(id); if(!p) return; p[key]=val; saveState(); }
+function updatePoint(id,key,val){ var p=byId(id); if(!p) return; p[key]=val; invalidateConditionsCache(); saveState(); render(); }
+function updatePointField(id,key,val){ var p=byId(id); if(!p) return; p[key]=val; invalidateConditionsCache(); saveState(); }
 
 /* ============================================================
    MODULE 4 — REACTION DATABASE
@@ -868,13 +1103,76 @@ function renderM4(){
       return '<tr><td>'+esc(r.pointId)+'</td><td>'+esc(r.loadCase)+'</td><td>'+fmt(r.fx)+'</td><td>'+fmt(r.fy)+'</td><td>'+fmt(r.fz)+'</td><td>'+fmt(r.mx)+'</td><td>'+fmt(r.my)+'</td><td>'+fmt(r.mz)+'</td>'+
         '<td>'+(r.fz<0?'<span class="badge badge-fail">uplift</span>':'<span class="badge badge-pass">compression</span>')+'</td></tr>';
     }).join('')+
-    '</tbody></table></div><div class="btn-row"><button class="btn btn-ghost" onclick="exportReactionsCSV()">Export CSV</button><button class="btn" onclick="setModule(5)">Continue to foundation plan</button></div></div>';
+    '</tbody></table></div><div class="btn-row"><button class="btn btn-ghost" onclick="exportReactionsCSV()">Export CSV</button><button class="btn" onclick="setModule(26)">Continue to load combinations</button></div></div>';
 }
 function setReactionFilter(v){ state.ui.reactionFilter=v; saveState(); render(); }
 function exportReactionsCSV(){
   var header='Point,LoadCase,F1,F2,F3,M1,M2,M3\n';
   var body=state.reactions.map(function(r){ return [r.pointId,r.loadCase,r.fx,r.fy,r.fz,r.mx,r.my,r.mz].join(','); }).join('\n');
   saveFile(((state.project&&state.project.name)||'project').replace(/\s+/g,'_')+'_reactions.csv', header+body);
+}
+
+/* ============================================================
+   MODULE 26 — LOAD COMBINATION MANAGER
+   ============================================================ */
+function categorizeCombo(name, factors){
+  var upper=name.toUpperCase();
+  if(/(^|[^0-9])0\.9\s*DL/.test(upper) || /UPLIFT/.test(upper)) return 'Uplift';
+  var hasSeismicWind = factors.some(function(f){ return /EQ|WIND|SPEC/i.test(f.pattern); });
+  var maxFactor = factors.reduce(function(m,f){ return Math.max(m,Math.abs(f.factor)); }, 0);
+  if(maxFactor<=1.0+1e-6) return 'Service';
+  return hasSeismicWind ? 'Ultimate — seismic/wind' : 'Ultimate';
+}
+function renderLoadComboManager(){
+  if(!state.comboDefs || !Object.keys(state.comboDefs).length){
+    return emptyState('No load combinations in this import','Plain CSV/TXT reaction files list already-combined load cases directly, so there\'s nothing to pick here — every case is used as-is. This step matters for .e2k/.f2k imports with separate COMBO data.', 2, 'Go to import');
+  }
+  if(!state.selectedCombos) state.selectedCombos = (state.comboNames||[]).slice();
+  var search=state.ui.comboSearch||'';
+  var resolvableSet={}; (state.comboNames||[]).forEach(function(n){ resolvableSet[n]=true; });
+  var selSet={}; state.selectedCombos.forEach(function(n){ selSet[n]=true; });
+  var allNames=Object.keys(state.comboDefs).filter(function(n){ return state.comboDefs[n] && state.comboDefs[n].length; });
+  var rows=allNames.filter(function(n){ return !search || n.toLowerCase().indexOf(search.toLowerCase())>=0; })
+    .map(function(n){ return { name:n, resolvable:!!resolvableSet[n], cat: resolvableSet[n] ? categorizeCombo(n, state.comboDefs[n]) : 'Unresolvable (missing pattern data)' }; });
+  var byCat={};
+  rows.forEach(function(r){ (byCat[r.cat]=byCat[r.cat]||[]).push(r); });
+  var catOrder=['Service','Ultimate','Ultimate — seismic/wind','Uplift','Unresolvable (missing pattern data)'];
+  var html='<div class="panel"><div class="panel-head"><div><div class="panel-title">Load combination manager</div>'+
+    '<div class="panel-hint">Sizing and the design check only look at what\'s ticked below — nothing runs against every combination automatically. Combinations with no transferred point-load data can\'t be evaluated and are locked off.</div></div></div>'+
+    '<div class="btn-row" style="margin-top:0;"><button class="btn btn-ghost btn-sm" onclick="selectAllCombos(true)">Select all resolvable</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="selectAllCombos(false)">Select none</button>'+
+    '<input id="comboSearchInput" type="text" placeholder="Search combinations…" value="'+esc(search)+'" oninput="setComboSearchLive(this.value)" style="padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--text);font-size:13px;min-width:220px;"></div>';
+  catOrder.forEach(function(cat){
+    if(!byCat[cat] || !byCat[cat].length) return;
+    html+='<div style="margin-top:18px;"><div style="font-weight:600;font-size:13px;margin-bottom:6px;">'+esc(cat)+' ('+byCat[cat].length+')</div>'+
+      '<div class="table-wrap"><table class="data-table"><tbody>'+
+      byCat[cat].map(function(r){
+        var safeName=esc(r.name).replace(/'/g,'&#39;');
+        return '<tr><td style="width:26px;"><input type="checkbox" '+(selSet[r.name]?'checked':'')+' '+(r.resolvable?'':'disabled')+' onchange="toggleCombo(\''+safeName+'\',this.checked)"></td>'+
+          '<td title="'+esc(r.name)+'">'+esc(shortLabel(r.name,74))+'</td></tr>';
+      }).join('')+'</tbody></table></div></div>';
+  });
+  html+='<p style="font-size:12px;color:var(--text-dim);margin-top:16px;">'+state.selectedCombos.length+' of '+(state.comboNames?state.comboNames.length:0)+' resolvable combinations selected for design.</p>';
+  html+='<div class="btn-row"><button class="btn" onclick="setModule(5)">Continue to foundation plan</button></div></div>';
+  return html;
+}
+function toggleCombo(name,val){
+  if(!state.selectedCombos) state.selectedCombos=(state.comboNames||[]).slice();
+  if(val){ if(state.selectedCombos.indexOf(name)<0) state.selectedCombos.push(name); }
+  else { state.selectedCombos=state.selectedCombos.filter(function(n){ return n!==name; }); }
+  invalidateConditionsCache(); saveState(); render();
+}
+function selectAllCombos(all){
+  state.selectedCombos = all ? (state.comboNames||[]).slice() : [];
+  invalidateConditionsCache(); saveState(); render();
+}
+function setComboSearchLive(v){
+  state.ui.comboSearch=v;
+  var prevCursor=null, el=document.getElementById('comboSearchInput');
+  if(el) prevCursor=el.selectionStart;
+  render();
+  var el2=document.getElementById('comboSearchInput');
+  if(el2){ el2.focus(); if(prevCursor!=null) el2.setSelectionRange(prevCursor,prevCursor); }
 }
 
 /* ============================================================
@@ -998,9 +1296,9 @@ function renderM7(){
 function renderGroupList(){
   return '<div class="table-wrap" style="margin-top:16px;"><table class="data-table"><thead><tr><th>Group</th><th>Type</th><th>Members</th><th>Source</th><th></th></tr></thead><tbody>'+
     state.groups.map(function(g){
-      return '<tr><td>'+esc(g.name)+'</td>'+
+      return '<tr><td title="'+esc(g.name)+'">'+esc(shortLabel(g.name))+'</td>'+
         '<td><select onchange="updateGroup(\''+g.id+'\',\'type\',this.value)">'+['Isolated','Combined','Strap','Strip','Combined wall footing','Core raft','Custom'].map(function(t){return '<option '+(g.type===t?'selected':'')+'>'+t+'</option>';}).join('')+'</select></td>'+
-        '<td>'+g.memberIds.map(esc).join(', ')+'</td><td>'+(g.auto?'auto':'manual')+'</td>'+
+        '<td>'+g.memberIds.map(esc).join(', ')+'</td><td><span class="badge '+(g.auto?'badge-dim':'badge-warn')+'">'+(g.auto?'AUTO':'MANUAL')+'</span></td>'+
         '<td><button class="btn btn-ghost btn-sm" onclick="renameGroup(\''+g.id+'\')">Rename</button></td></tr>';
     }).join('')+'</tbody></table></div>';
 }
@@ -1095,7 +1393,7 @@ function renderM10(){
     '<div class="panel-hint">Bundle one or more groups into a zone once they\'ll share one raft, strip or core slab.</div></div></div>';
   if(available.length){
     html+='<div class="table-wrap"><table class="data-table"><thead><tr><th></th><th>Group</th><th>Type</th></tr></thead><tbody>'+
-      available.map(function(g){ return '<tr><td><input type="checkbox" '+(sel.indexOf(g.id)>=0?'checked':'')+' onchange="toggleZoneSel(\''+g.id+'\',this.checked)"></td><td>'+esc(g.name)+'</td><td>'+esc(g.type)+'</td></tr>'; }).join('')+
+      available.map(function(g){ return '<tr><td><input type="checkbox" '+(sel.indexOf(g.id)>=0?'checked':'')+' onchange="toggleZoneSel(\''+g.id+'\',this.checked)"></td><td title="'+esc(g.name)+'">'+esc(shortLabel(g.name))+'</td><td>'+esc(g.type)+'</td></tr>'; }).join('')+
       '</tbody></table></div>'+
       '<div class="field-grid" style="margin-top:12px;max-width:340px;"><div class="field"><label>Zone type</label><select id="zoneTypeSel">'+['Raft','Strip','Isolated','Core raft'].map(function(t){return '<option>'+t+'</option>';}).join('')+'</select></div></div>'+
       '<div class="btn-row"><button class="btn" onclick="createZone()">Create zone from ticked</button></div>';
@@ -1113,16 +1411,21 @@ function renderM10(){
 function runSizing(){
   state.groups.forEach(function(g){
     var sizing=sizeFooting(g);
-    if(sizing) state.designs[g.id]={ sizing:sizing };
+    if(!sizing) return;
+    if(!sizing.upliftForce && g.memberIds.length===1){
+      var tt=runThicknessTrials(g, sizing);
+      if(tt){ sizing.D=tt.chosenD/1000; sizing.thicknessTrials=tt.trials; sizing.thicknessAuto=true; sizing.thicknessConverged=tt.converged; }
+    }
+    state.designs[g.id]={ sizing:sizing };
   });
   saveState(); render();
   toast('Sizing complete.');
 }
 function updateDesignField(gid,key,val){
-  if(state.designs[gid]){ state.designs[gid].sizing[key]=val; saveState(); render(); }
+  if(state.designs[gid]){ state.designs[gid].sizing[key]=val; if(key==='D') state.designs[gid].sizing.thicknessAuto=false; saveState(); render(); }
 }
 function updateDesignFieldLive(gid,key,val){
-  if(state.designs[gid]){ state.designs[gid].sizing[key]=val; saveState(); }
+  if(state.designs[gid]){ state.designs[gid].sizing[key]=val; if(key==='D') state.designs[gid].sizing.thicknessAuto=false; saveState(); }
 }
 function renderSizingResults(){
   return state.groups.filter(function(g){ return state.designs[g.id]; }).map(function(g){
@@ -1132,15 +1435,24 @@ function renderSizingResults(){
     var overallPass = d.pass && (d.upliftIterations?d.upliftPass:true);
     var html='<div class="zone-card"><div class="zone-head"><div><strong>'+esc(g.name)+'</strong> <span class="zone-type">'+esc(g.type)+'</span></div>'+
       '<span class="badge '+(overallPass?'badge-pass':'badge-fail')+'">'+(overallPass?'sized':'not converged')+'</span></div>'+
-      '<p style="font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);margin-top:8px;">P '+fmt(d.P,0)+' kN under '+esc(d.governingCase)+' · SBC '+fmt(state.project.sbc,0)+' kN/m²</p>'+
+      '<p style="font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);margin-top:8px;">P '+fmt(d.P,0)+' kN under '+esc(d.governingCase)+' · SBC '+fmt(state.project.sbc,0)+' kN/m²'+
+      (d.maxM1Case && d.maxM1Case!==d.governingCase?' · governing Mx '+fmt(d.maxM1,1)+' kNm under '+esc(d.maxM1Case):'')+
+      (d.maxM2Case && d.maxM2Case!==d.governingCase?' · governing My '+fmt(d.maxM2,1)+' kNm under '+esc(d.maxM2Case):'')+'</p>'+
       '<div class="log-console">'+bLines.map(function(it){ return '<div class="log-line '+(it.pass?'pass':'fail')+'">'+fmt(it.L,1)+' × '+fmt(it.B,1)+' m → qmax '+fmt(it.qmax,1)+' → '+(it.pass?'PASS':'FAIL')+'</div>'; }).join('')+'</div>';
     if(uLines){
       html+='<p style="font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);margin-top:10px;">Net uplift '+fmt(d.upliftForce,1)+' kN under '+esc(d.upliftCase)+' — checking self-weight, FOS 1.5</p>'+
         '<div class="log-console">'+uLines.map(function(it){ return '<div class="log-line '+(it.pass?'pass':'fail')+'">'+fmt(it.L,1)+'×'+fmt(it.B,1)+'×'+fmt(it.D,2)+' m → weight '+fmt(it.value,0)+' / needed '+fmt(it.target,0)+' kN → '+(it.pass?'PASS':'FAIL')+'</div>'; }).join('')+'</div>';
       if(d.note) html+='<p style="font-size:12.5px;color:var(--fail);margin-top:8px;">'+esc(d.note)+'</p>';
     }
+    if(d.thicknessTrials){
+      html+='<p style="font-size:12.5px;color:var(--text-dim);margin-top:10px;">Trial thickness (punching · shear · dev. length):</p>'+
+        '<div class="log-console">'+d.thicknessTrials.map(function(t){
+          return '<div class="log-line '+(t.pass?'pass':'fail')+'">'+t.D+' mm → punching '+(t.punchOk?'OK':'FAIL')+' · shear '+(t.shearOk?'OK':'FAIL')+' · dev '+(t.devOk?'OK':'FAIL')+' → '+(t.pass?'PASS':'FAIL')+'</div>';
+        }).join('')+'</div>'+
+        (d.thicknessConverged===false?'<p style="font-size:12.5px;color:var(--fail);margin-top:6px;">No thickness up to 900mm passes every check — this footing needs a plan-size increase, higher concrete grade, or a pile cap rather than more depth.</p>':'');
+    }
     html+='<p style="font-family:var(--font-mono);font-size:13px;margin-top:8px;">Final: '+fmt(d.L,2)+' × '+fmt(d.B,2)+' × '+fmt(d.D,2)+' m · qmax '+fmt(d.qmax,1)+' kN/m²</p>'+
-      '<div class="field" style="max-width:220px;margin-top:8px;"><label>Trial thickness override (m)</label><input type="number" step="0.05" value="'+fmt(d.D,2)+'" oninput="updateDesignFieldLive(\''+g.id+'\',\'D\',parseFloat(this.value))"></div></div>';
+      '<div class="field" style="max-width:260px;margin-top:8px;"><label>Thickness (m) — <span class="badge '+(d.thicknessAuto?'badge-dim':'badge-warn')+'" style="font-size:10px;">'+(d.thicknessAuto?'AUTO':'MANUAL OVERRIDE')+'</span></label><input type="number" step="0.05" value="'+fmt(d.D,2)+'" oninput="updateDesignFieldLive(\''+g.id+'\',\'D\',parseFloat(this.value))"></div></div>';
     return html;
   }).join('');
 }
@@ -1185,7 +1497,76 @@ function renderM12(){
   return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Foundation design check</div>'+
     '<div class="panel-hint">Bearing, eccentricity, one-way shear, punching shear and flexure per '+esc(state.project.code)+'. Combined footings show bearing only here — per-column shear and flexure for those ships with wall/core and raft design in phase 2.</div></div></div>'+
     sized.map(renderDesignCard).join('')+
-    '<p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Preliminary sizing only — have a licensed structural engineer verify before construction.</p></div>';
+    '<p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Preliminary sizing only — have a licensed structural engineer verify before construction.</p>'+
+    '<div class="btn-row"><button class="btn" onclick="setModule(20)">Continue to design summary</button></div></div>';
+}
+
+/* ============================================================
+   MODULE 20 — DESIGN SUMMARY
+   ============================================================ */
+function summarizeGroup(g){
+  var d=state.designs[g.id].sizing;
+  var chk=designCheck(g,d);
+  var punchOk = chk.isolated ? chk.punching.ok : null;
+  var shearOk = chk.isolated ? (chk.dirX.shearOK && chk.dirY.shearOK) : null;
+  var steelX = chk.isolated ? (chk.dirX.bar+'mm@'+chk.dirX.spacing) : '—';
+  var steelY = chk.isolated ? (chk.dirY.bar+'mm@'+chk.dirY.spacing) : '—';
+  var overallOk = chk.bearing.ok && chk.eccentricity.ok && (punchOk===null||punchOk) && (shearOk===null||shearOk);
+  return {g:g,d:d,chk:chk,punchOk:punchOk,shearOk:shearOk,steelX:steelX,steelY:steelY,overallOk:overallOk};
+}
+function renderM20(){
+  var withDesign=state.groups.filter(function(g){ return state.designs[g.id]; });
+  if(!withDesign.length) return emptyState('Nothing designed yet','Run auto sizing and the design check first.',11,'Go to auto sizing');
+  var rows=withDesign.map(summarizeGroup);
+  var body=rows.map(function(r){
+    return '<tr><td title="'+esc(r.g.name)+'">'+esc(shortLabel(r.g.name))+'</td><td>'+esc(r.g.type)+'</td><td>'+esc(shortLabel(r.g.memberIds.join(', '),50))+'</td>'+
+      '<td>'+fmt(r.d.L,2)+'×'+fmt(r.d.B,2)+'</td><td>'+fmt(r.d.D,2)+'</td><td>'+fmt(r.chk.bearing.qmax,1)+'</td>'+
+      '<td>'+(r.punchOk===null?'—':(r.punchOk?'OK':'CHECK'))+'</td><td>'+(r.shearOk===null?'—':(r.shearOk?'OK':'CHECK'))+'</td>'+
+      '<td style="font-family:var(--font-mono);font-size:11.5px;">'+r.steelX+' / '+r.steelY+'</td>'+
+      '<td><span class="badge '+(r.overallOk?'badge-pass':'badge-fail')+'">'+(r.overallOk?'OK':'CHECK')+'</span></td></tr>';
+  }).join('');
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Design summary</div>'+
+    '<div class="panel-hint">One row per footing group, pulled straight from sizing and the design check — nothing recalculated here.</div></div></div>'+
+    '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>Elements</th><th>Size (m)</th><th>Thk (m)</th><th>qmax</th><th>Punching</th><th>Shear</th><th>Steel X/Y</th><th>Status</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+    '<div class="btn-row"><button class="btn btn-ghost" onclick="exportDesignSummaryCSV()">Export CSV</button><button class="btn" onclick="setModule(21)">Continue to SAFE preview</button></div></div>';
+}
+function exportDesignSummaryCSV(){
+  var withDesign=state.groups.filter(function(g){ return state.designs[g.id]; });
+  var header='Group,Type,Elements,L(m),B(m),D(m),qmax(kN per m2),Punching,Shear,SteelX,SteelY,Status\n';
+  var body=withDesign.map(summarizeGroup).map(function(r){
+    return [r.g.name,r.g.type,'"'+r.g.memberIds.join('+')+'"',fmt(r.d.L,2),fmt(r.d.B,2),fmt(r.d.D,2),fmt(r.chk.bearing.qmax,1),
+      r.punchOk===null?'':(r.punchOk?'OK':'CHECK'), r.shearOk===null?'':(r.shearOk?'OK':'CHECK'),
+      r.steelX,r.steelY, r.overallOk?'OK':'CHECK'].join(',');
+  }).join('\n');
+  saveFile(((state.project&&state.project.name)||'project').replace(/\s+/g,'_')+'_design_summary.csv', header+body);
+}
+
+/* ============================================================
+   MODULE 21 — SAFE MODEL PREVIEW
+   ============================================================ */
+function renderM21(){
+  if(!state.project) return emptyState('No project yet','Set up the project first.',1,'Go to project setup');
+  var cols=state.points.filter(function(p){return p.type==='Column';}).length;
+  var walls=state.points.filter(function(p){return p.type!=='Column';}).length;
+  var isolatedCount=state.groups.filter(function(g){return g.type==='Isolated';}).length;
+  var otherCount=state.groups.length-isolatedCount;
+  function row(label,val){ return '<tr><td>'+esc(label)+'</td><td style="font-family:var(--font-mono);">'+esc(val)+'</td></tr>'; }
+  return '<div class="panel"><div class="panel-head"><div><div class="panel-title">SAFE model preview</div>'+
+    '<div class="panel-hint">What this project has right now, the way it will need to line up once it goes into SAFE. The .e2k/.f2k writer (module 22) plugs into this same data — it\'s waiting on a real sample file to match the exact table syntax, not on this data being ready.</div></div></div>'+
+    '<div class="table-wrap"><table class="data-table"><tbody>'+
+    row('Design code', state.project.code)+
+    row('Units', state.project.units)+
+    row('Concrete / steel grade', state.project.concreteGrade+' / '+state.project.steelGrade)+
+    row('Supports — columns', cols)+
+    row('Supports — wall piers / core', walls)+
+    row('Load cases', state.loadCases.join(', ')||'—')+
+    row('Footing groups — isolated', isolatedCount)+
+    row('Footing groups — combined / wall / other', otherCount)+
+    row('Zones', state.zones.length?state.zones.map(function(z){return z.name+' ('+z.type+')';}).join(', '):'none yet')+
+    row('Soil bearing capacity', state.project.sbc+' kN/m²')+
+    row('Sized footings', Object.keys(state.designs).length+' of '+state.groups.length+' groups')+
+    '</tbody></table></div>'+
+    '<div class="btn-row"><button class="btn btn-ghost" onclick="setModule(20)">Back to design summary</button></div></div>';
 }
 
 /* ============================================================
@@ -1201,6 +1582,7 @@ function importProject(file){
     try{
       var parsed=JSON.parse(String(e.target.result));
       state=parsed; if(!state.ui) state.ui=defaultState().ui;
+      rebuildReactionIndex(); invalidateConditionsCache();
       saveState(); render();
       toast('Project loaded.');
     }catch(err){ toast('Could not read that file — is it a project export?'); }
@@ -1209,7 +1591,7 @@ function importProject(file){
 }
 function resetProjectAll(){
   if(!confirm('Start a new project? This clears the current one from this browser.')) return;
-  state=defaultState(); saveState(); render();
+  state=defaultState(); rebuildReactionIndex(); invalidateConditionsCache(); saveState(); render();
 }
 function renderM25(){
   return '<div class="panel"><div class="panel-head"><div><div class="panel-title">Save / load project</div>'+
